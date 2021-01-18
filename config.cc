@@ -6,11 +6,11 @@ Config::Config()
     port_ = 9006;
     //日志写入方式
     log_write_ = 0;
-    // 触发组合模式，默认listenfd LT + connectfd LT
+    // 触发组合模式，默认listen_fd LT + connect_fd LT
     trig_mode_ = 0;
-    // listenfd触发模式，默认LT
+    // listen_fd触发模式，默认LT
     listen_trig_mode_ = 0;
-    // connectfd触发模式，默认LT
+    // connect_fd触发模式，默认LT
     connect_trig_mode_ = 0;
     // 优雅关闭连接，默认不使用
     opt_linger_ = 0;

@@ -1,0 +1,8 @@
+#ifndef WEBSERVER_HTTP_HTTP_CONNECT_H
+#define WEBSERVER_HTTP_HTTP_CONNECT_H
+
+class Http_connect
+{
+};
+
+#endif WEBSERVER_HTTP_HTTP_CONNECT_H

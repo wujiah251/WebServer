@@ -19,9 +19,9 @@ public:
     int port_;              //端口号
     int log_write_;         //日志写入方式
     int trig_mode_;         //触发组合模式
-    int listen_trig_mode_;  //listenfd触发模式
-    int connect_trig_mode_; //connectfd触发模式
-    int opt_linger_;        //优雅关闭连接
+    int listen_trig_mode_;  //listen_fd触发模式
+    int connect_trig_mode_; //connect_fd触发模式
+    int opt_linger_;        //优雅关闭连接(TCP连接断开方式分为优雅的断开和强制断开两种方式)
     int sql_num_;           //数据库连接池数量
     int thread_num_;        //线程池内的线程数量
     int close_log_;         //是否关闭日志
