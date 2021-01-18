@@ -83,7 +83,9 @@ private:
     pthread_mutex_t mutex_;
 };
 
-// 条件变量类，基于pthread_cond_t
+// 条件变量类，基于pthread_cond_、pthread_mutex_t
+// 构造函数和析构函数：Cond()、~Cond()
+// wait()、time_wait(struct timespec t)、signal()
 class Cond
 {
 public:
@@ -104,7 +106,7 @@ public:
         pthread_mutex_destroy(&mutex_);
         pthread_cond_destroy(&cond_);
     }
-    bool wait(pthread_mutex_t)
+    bool wait()
     {
         // mutex是用于保护目标变量的互斥锁，调用前必须确保已经加锁
         int ret = 0;
@@ -124,6 +126,10 @@ public:
     bool signal()
     {
         return pthread_cond_signal(&cond_) == 0;
+    }
+    bool broadcast()
+    {
+        return pthread_cond_broadcast(&cond_) == 0;
     }
 
 private:
