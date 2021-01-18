@@ -52,17 +52,17 @@ private:
 // 互斥锁类，基于pthread_mutex_t
 // 构造函数和析构函数：locker()、~locker()
 // 加锁lock()、unlock()
-class locker
+class Locker
 {
 public:
-    locker()
+    Locker()
     {
         if (pthread_mutex_init(&mutex_, NULL) != 0)
         {
             throw std::exception();
         }
     }
-    ~locker()
+    ~Locker()
     {
         pthread_mutex_destroy(&mutex_);
     }
