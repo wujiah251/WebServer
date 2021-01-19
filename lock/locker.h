@@ -85,7 +85,7 @@ private:
 
 // 条件变量类，基于pthread_cond_、pthread_mutex_t
 // 构造函数和析构函数：Cond()、~Cond()
-// wait()、time_wait(struct timespec t)、signal()
+// wait()、time_wait()、signal()
 class Cond
 {
 public:
@@ -110,7 +110,8 @@ public:
     bool time_wait(pthread_mutex_t *mutex, struct timespec t)
     {
         int ret = 0;
-        ret = pthread_cond_timedwait(&cond_, mutex, &t) ； return ret == 0;
+        ret = pthread_cond_timedwait(&cond_, mutex, &t);
+        return ret == 0;
     }
     bool signal()
     {
