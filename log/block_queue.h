@@ -13,6 +13,16 @@ using namespace std;
 template <class T>
 class Block_queue
 {
+private:
+    Locker mutex_;
+    Cond cond_;
+
+    T *array_;
+    int size_;
+    int max_size_;
+    int front_;
+    int back_;
+
 public:
     Block_queue(int max_size = 1000)
     {
@@ -35,7 +45,7 @@ public:
         back_ = -1;
         mutex_.unlock();
     }
-    ~_Block_queue()
+    ~Block_queue()
     {
         mutex_.lock();
         if (array_ != NULL)
@@ -146,9 +156,8 @@ public:
         mutex_.lock();
         if (size_ <= 0)
         {
-            t.tv_sec = now.tv_sec + ms_timeout / 1000; //秒
-            t.tv_nsec = (ms_timeout % 1000) * 1000;    //纳秒
-            // 疑惑？？
+            t.tv_sec = now.tv_sec + ms_timeout / 1000;            //秒
+            t.tv_nsec = (now.tv_usec + ms_timeout % 1000) * 1000; //纳秒
             if (!cond_.time_wait(t){
                 mutex_.unlock();
                 return false;
@@ -165,16 +174,6 @@ public:
         mutex_.unlock();
         return true;
     }
-
-private:
-    Locker mutex_;
-    Cond cond_;
-
-    T *array_;
-    int size_;
-    int max_size_;
-    int front_;
-    int back_;
 };
 
 #endif

@@ -1,4 +1,4 @@
-#ifdef WEBSERVER_LOG_LOG_H_
+#ifndef WEBSERVER_LOG_LOG_H_
 #define WEBSERVER_LOG_LOG_H_
 
 #include <stdio.h>
@@ -6,10 +6,16 @@
 #include <string>
 #include <stdarg.h>
 #include <pthread.h>
-
 #include "block_queue.h"
 
 using namespace std;
+
+// 日志类Log
+// 单例模式
+// 获得实例方法Log::get_instance()
+// 初始化init()，参数包括文件名称，是否关闭，最大缓冲区长度，最大行数，队列最大规模
+// 写日志log()，参数包括level(debug、info...)，以及写入信息
+// 强制更新文件写入缓冲区flush()
 
 class Log
 {
@@ -21,7 +27,7 @@ public:
         static Log instance;
         return &instance;
     }
-    static void *flush_log_thread(*arg)
+    static void *flush_log_thread(void *arg)
     {
         Log::get_instance()->async_write_log();
     }
@@ -39,10 +45,10 @@ private:
     {
         string single_log;
         // 从阻塞队列中取出一个日志string，写入文件
-        while (log_queue_->pop(single_log_))
+        while (log_queue_->pop(single_log))
         {
             mutex_.lock();
-            fputs(single_log_.c_str(), file_ptr_); //写入日志
+            fputs(single_log.c_str(), file_ptr_); //写入日志
             mutex_.unlock();
         }
     }
@@ -54,9 +60,9 @@ private:
     int log_buf_size_;               //日志缓冲区大小
     long long count_;                //日志行数记录
     int today_;                      //记录今天哪天
-    FILE file_ptr_;                  //打开log的文件指针
+    FILE *file_ptr_;                 //打开log的文件指针
     char *buf_;                      //缓冲区
-    block_queue<string> *log_queue_; //阻塞队列
+    Block_queue<string> *log_queue_; //阻塞队列
     bool is_async_;                  //是否同步标志位
     Locker mutex_;                   //互斥锁
     int close_log_;                  //关闭日志
