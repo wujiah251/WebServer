@@ -11,7 +11,7 @@
 using namespace std;
 
 // 日志类Log
-// 单例模式
+// 单例模式+懒汉模式
 // 获得实例方法Log::get_instance()
 // 初始化init()，参数包括文件名称，是否关闭，最大缓冲区长度，最大行数，队列最大规模
 // 写日志log()，参数包括level(debug、info...)，以及写入信息

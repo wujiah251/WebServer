@@ -91,37 +91,26 @@ class Cond
 public:
     Cond()
     {
-        if (pthread_mutex_init(&mutex_, NULL) != 0)
-        {
-            throw std::exception();
-        }
         if (pthread_cond_init(&cond_, NULL) != 0)
         {
-            pthread_mutex_destroy(&mutex_);
             throw std::exception();
         }
     }
     ~Cond()
     {
-        pthread_mutex_destroy(&mutex_);
         pthread_cond_destroy(&cond_);
     }
-    bool wait()
+    bool wait(pthread_mutex_t *mutex)
     {
         // mutex是用于保护目标变量的互斥锁，调用前必须确保已经加锁
         int ret = 0;
-        pthread_mutex_lock(&mutex_);
-        ret = pthread_cond_wait(&cond_, &mutex_);
-        pthread_mutex_unlock(&mutex_);
+        ret = pthread_cond_wait(&cond_, mutex);
         return ret == 0;
     }
-    bool time_wait(struct timespec t)
+    bool time_wait(pthread_mutex_t *mutex, struct timespec t)
     {
         int ret = 0;
-        pthread_mutex_lock(&mutex_);
-        ret = pthread_cond_timedwait(&cond_, &mutex_, &t);
-        pthread_mutex_unlock(&mutex_);
-        return ret == 0;
+        ret = pthread_cond_timedwait(&cond_, mutex, &t) ； return ret == 0;
     }
     bool signal()
     {
@@ -133,7 +122,6 @@ public:
     }
 
 private:
-    pthread_mutex_t mutex_;
     pthread_cond_t cond_;
 };
 

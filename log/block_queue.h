@@ -135,13 +135,12 @@ public:
         mutex_.lock();
         while (size_ <= 0)
         {
-            if (!cond_.wait())
+            if (!cond_.wait(mutex_.get()))
             {
                 mutex_.unlock();
                 return false;
             }
         }
-        // ***有点问题
         front_ = (front_ + 1) % max_size();
         item = array_[front_];
         size_--;
@@ -156,8 +155,8 @@ public:
         mutex_.lock();
         if (size_ <= 0)
         {
-            t.tv_sec = now.tv_sec + ms_timeout / 1000;            //秒
-            t.tv_nsec = (now.tv_usec + ms_timeout % 1000) * 1000; //纳秒
+            t.tv_sec = now.tv_sec + timeout / 1000;            //秒
+            t.tv_nsec = (now.tv_usec + timeout % 1000) * 1000; //纳秒
             if (!cond_.time_wait(t){
                 mutex_.unlock();
                 return false;
