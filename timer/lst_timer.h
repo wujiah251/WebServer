@@ -83,7 +83,7 @@ public:
 public:
     static int *u_pipe_fd_;
     Sort_timer_lst timer_lst_;
-    static int u_epoll_fd_;
+    static int u_epoll_fd_; //通信管道，fd_[0]读，fd_[1]写
     int TIMESLOT;
 };
 

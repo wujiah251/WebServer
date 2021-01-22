@@ -70,31 +70,31 @@ private:
 
 // 写入debug信息
 #define LOG_DEBUG(format, ...)                                   \
-    if (0 == close_log)                                          \
+    if (0 == close_log_)                                         \
     {                                                            \
         Log::get_instance()->write_log(0, format, ##_VA_ARGS__); \
         Log::get_instance()->flush();                            \
     }
 // 写入info信息
 #define LOG_INFO(format, ...)                                    \
-    if (0 == close_log)                                          \
+    if (0 == close_log_)                                         \
     {                                                            \
         Log::get_instance()->write_log(1, format, ##_VA_ARGS__); \
         Log::get_instance()->flush();                            \
     }
 // 写入warn信息
 #define LOG_WARN(format, ...)                                    \
-    if (0 == close_log)                                          \
+    if (0 == close_log_)                                         \
     {                                                            \
         Log::get_instance()->write_log(2, format, ##_VA_ARGS__); \
         Log::get_instance()->flush();                            \
     }
-// 写入error信息
-#define LOG_ERROR(format, ...)                                   \
-    if (0 == close_log)                                          \
-    {                                                            \
-        Log::get_instance()->write_log(3, format, ##_VA_ARGS__); \
-        Log::get_instance()->flush();                            \
+//写入error信息
+#define LOG_ERROR(format, ...)                                    \
+    if (0 == close_log_)                                          \
+    {                                                             \
+        Log::get_instance()->write_log(3, format, ##__VA_ARGS__); \
+        Log::get_instance()->flush();                             \
     }
 
 #endif
