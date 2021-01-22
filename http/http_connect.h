@@ -69,7 +69,7 @@ public:
     };
 
 public:
-    void init(int socket_fd, const sockaddr_in &addr, char *, int, int, string user, string user, string password, sqlname);
+    void init(int socket_fd, const sockaddr_in &addr, char *, int, int, string user, string password, string sqlname);
     void close_connect(bool read_close = true);
     void process();
     bool read_once();
@@ -88,6 +88,7 @@ private:
     bool process_write(HTTP_CODE ret);
     HTTP_CODE parse_request_line(char *text);
     HTTP_CODE parse_headers(char *text);
+    HTTP_CODE parse_content(char *text);
     HTTP_CODE do_request();
     char *get_line()
     {
@@ -120,7 +121,7 @@ private:
     int write_idx_;
     CHECK_STATE check_state_;
     METHOD method_;
-    char read_file_[FILENAME_LEN];
+    char real_file_[FILENAME_LEN];
     char *url_;
     char *version_;
     char *host_;

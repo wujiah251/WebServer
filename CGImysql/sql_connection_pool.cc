@@ -114,6 +114,8 @@ Connection_pool::~Connection_pool()
 {
     destroy_pool();
 }
+
+// ConnectionRAII:
 ConnectionRAII::ConnectionRAII(MYSQL **SQL, Connection_pool *connect_pool)
 {
     *SQL = connect_pool->get_connection();

@@ -76,11 +76,11 @@ private:
         Log::get_instance()->flush();                            \
     }
 // 写入info信息
-#define LOG_INFO(format, ...)                                    \
-    if (0 == close_log_)                                         \
-    {                                                            \
-        Log::get_instance()->write_log(1, format, ##_VA_ARGS__); \
-        Log::get_instance()->flush();                            \
+#define LOG_INFO(format, ...)                                     \
+    if (0 == close_log_)                                          \
+    {                                                             \
+        Log::get_instance()->write_log(1, format, ##__VA_ARGS__); \
+        Log::get_instance()->flush();                             \
     }
 // 写入warn信息
 #define LOG_WARN(format, ...)                                    \
