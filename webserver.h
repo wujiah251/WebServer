@@ -18,7 +18,7 @@
 
 const int kMax_Fd = 65536;           //最大文件描述符
 const int kMax_Event_Number = 10000; //最大事件数
-const int kTime_Slot = 5;            //最小超时单位  ？？
+const int kTime_Slot = 5;            //最小超时单位
 
 class WebServer
 {
@@ -27,15 +27,15 @@ public:
     ~WebServer();
     // 初始化函数，导入配置
     void init(Config *config, string user, string password, string name);
-    // 还没搞清楚
+    // 线程池
     void thread_pool();
-    // 还没搞清楚
+    // 初始化数据库连接池
     void sql_pool();
-    // 还没搞清楚
+    // 初始化日志类
     void log_write();
-    // 还没搞清楚
+    // 设置触发组合模式：监听套接字、已连接套接字
     void trig_mode();
-    // 还没搞清楚
+    //
     void event_listen();
     // 还没搞清楚
     void event_loop();
@@ -60,22 +60,25 @@ public:
     int log_write_;   //日志写入方式
     int close_log_;   //是否关闭日志
     int actor_model_; //并发模型选择
+
+    int pipe_fd_[2]; //管道
+    int epoll_fd_;
     // http连接类数组
     Http_connect *users_;
 
     // 数据库相关
-    Connect_pool *connect_pool_;
-    string database_user_;     //登陆数据库用户名
-    string database_password_; //登陆数据库密码
-    string database_name_;     //数据库名称
-    int sql_num_;
+    Connection_pool *connect_pool_; //数据库连接池
+    string database_user_;          //登陆数据库用户名
+    string database_password_;      //登陆数据库密码
+    string database_name_;          //数据库名称
+    int sql_num_;                   //连接池规模
 
     //线程池
     Threadpool<Http_connect> *thread_pool_;
     int thread_num_; //线程池规模
 
     // epoll_event相关
-    Epoll_event epoll_events_[kMax_Event_Number];
+    epoll_event epoll_events_[kMax_Event_Number];
 
     int listen_fd_;         // 监听套接字标识符
     int opt_linger_;        // 优雅关闭连接
@@ -84,8 +87,8 @@ public:
     int connect_trig_mode_; // connect_fd触发模式
 
     // 定时器相关
-    Client_data *user_timers_;
-    Utils utils_; //不知道
+    Client_data *users_timer_;
+    Utils utils_;
 };
 
 #endif

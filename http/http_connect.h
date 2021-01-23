@@ -78,6 +78,7 @@ public:
     {
         return &address_;
     }
+    // 把数据的数据读取到查找表users中
     void init_mysql_result(Connection_pool *connectPool);
     int timer_flag_;
     int improve_;

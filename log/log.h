@@ -32,7 +32,7 @@ public:
         Log::get_instance()->async_write_log();
     }
     // 日志初始化
-    // 参数：日志文件，日志缓冲区大小，最大行数以及最长日志条队列
+    // 参数：日志文件，关闭日志,日志缓冲区大小，最大行数、最长写日志队列
     bool init(const char *file_name, int close_log, int log_buf_size = 8192,
               int split = 5000000, int max_queue_size = 0);
     void write_log(int level, const char *format, ...);
