@@ -1,163 +1,152 @@
-#ifndef WEBSERVER_THREADPOOL_THREADPOOL_H_
-#define WEBSERVER_THREADPOOL_THREADPOOL_H_
+#ifndef THREADPOOL_H
+#define THREADPOOL_H
 
 #include <list>
 #include <cstdio>
 #include <exception>
 #include <pthread.h>
-
 #include "../lock/locker.h"
 #include "../CGImysql/sql_connection_pool.h"
 
 template <typename T>
-class Threadpool
+class threadpool
 {
 public:
-    //thread_number是线程池中的线程的数量，max_requests是请求队列中最多允许的、等待处理的请求的数量
-    Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number = 8, int max_requests = 10000);
-    ~Threadpool();
+    /*thread_number是线程池中线程的数量，max_requests是请求队列中最多允许的、等待处理的请求的数量*/
+    threadpool(int actor_model, connection_pool *connPool, int thread_number = 8, int max_request = 10000);
+    ~threadpool();
     bool append(T *request, int state);
     bool append_p(T *request);
 
 private:
-    //工作线程运行的函数，它不断从工作队列中取出任务并执行之
+    /*工作线程运行的函数，它不断从工作队列中取出任务并执行之*/
     static void *worker(void *arg);
     void run();
 
 private:
-    int thread_number_;             //线程池中的线程数量
-    int max_requests_;              //请求队列中允许的最大请求数
-    pthread_t *threads_;            //描述线程池的数组，其大小为thread_number_
-    std::list<T *> work_queue_;     //工作队列
-    Locker queue_locker_;           //保护请求队列的互斥锁
-    Sem queue_stat_;                //是否有任务需要处理
-    Connection_pool *connect_pool_; //数据库连接池
-    int actor_model_;               //模型切换
+    int m_thread_number;         //线程池中的线程数
+    int m_max_requests;          //请求队列中允许的最大请求数
+    pthread_t *m_threads;        //描述线程池的数组，其大小为m_thread_number
+    std::list<T *> m_workqueue;  //请求队列
+    locker m_queuelocker;        //保护请求队列的互斥锁
+    sem m_queuestat;             //是否有任务需要处理
+    connection_pool *m_connPool; //数据库
+    int m_actor_model;           //模型切换
 };
 template <typename T>
-Threadpool<T>::Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number, int max_requests)
-    : actor_model_(actor_model), thread_number_(thread_number), max_requests_(max_requests), threads_(NULL), connect_pool_(connect_pool)
+threadpool<T>::threadpool(int actor_model, connection_pool *connPool, int thread_number, int max_requests) : m_actor_model(actor_model), m_thread_number(thread_number), m_max_requests(max_requests), m_threads(NULL), m_connPool(connPool)
 {
     if (thread_number <= 0 || max_requests <= 0)
-    {
         throw std::exception();
-    }
-    threads_ = new pthread_t[thread_number];
-    if (threads_ == NULL)
+    m_threads = new pthread_t[m_thread_number];
+    if (!m_threads)
         throw std::exception();
-    for (int i = 0; i < thread_number_; i++)
+    for (int i = 0; i < thread_number; ++i)
     {
-        if (pthread_create(threads_ + i, NULL, worker, this) != 0)
+        if (pthread_create(m_threads + i, NULL, worker, this) != 0)
         {
-            delete[] threads_;
+            delete[] m_threads;
             throw std::exception();
         }
-        // 让线程池中的每个线程变成分离的，这样子线程在运行完成后就不需要显式地等待每个对等线程终止。
-        // 在这种情况下，每个对等线程都应该在它开始处理请求之前分离它自身，这样就能在它终止后回收它的内存资源了。
-        if (pthread_detach(threads_[i]))
+        if (pthread_detach(m_threads[i]))
         {
-            delete[] threads_;
+            delete[] m_threads;
             throw std::exception();
         }
     }
 }
-// 析构函数
 template <typename T>
-Threadpool<T>::~Threadpool()
+threadpool<T>::~threadpool()
 {
-    delete[] threads_;
+    delete[] m_threads;
 }
-// 添加工作任务
 template <typename T>
-bool Threadpool<T>::append(T *request, int state)
+bool threadpool<T>::append(T *request, int state)
 {
-    queue_locker_.lock();
-    if (work_queue_.size() >= max_requests_)
+    m_queuelocker.lock();
+    if (m_workqueue.size() >= m_max_requests)
     {
-        queue_locker_.unlock();
+        m_queuelocker.unlock();
         return false;
     }
-    request->state_ = state;
-    work_queue_.push_back(request);
-    queue_locker_.unlock();
-    queue_stat_.post();
+    request->m_state = state;
+    m_workqueue.push_back(request);
+    m_queuelocker.unlock();
+    m_queuestat.post();
     return true;
 }
 template <typename T>
-bool Threadpool<T>::append_p(T *request)
+bool threadpool<T>::append_p(T *request)
 {
-    queue_locker_.lock();
-    if (work_queue_.size() >= max_requests_)
+    m_queuelocker.lock();
+    if (m_workqueue.size() >= m_max_requests)
     {
-        queue_locker_.unlock();
+        m_queuelocker.unlock();
         return false;
     }
-    work_queue_.push_back(request);
-    queue_locker_.unlock();
-    queue_stat_.post();
+    m_workqueue.push_back(request);
+    m_queuelocker.unlock();
+    m_queuestat.post();
     return true;
 }
-
 template <typename T>
-void *Threadpool<T>::worker(void *arg)
+void *threadpool<T>::worker(void *arg)
 {
-    Threadpool *pool = (Threadpool *)arg;
+    threadpool *pool = (threadpool *)arg;
     pool->run();
     return pool;
 }
-
 template <typename T>
-void Threadpool<T>::run()
+void threadpool<T>::run()
 {
     while (true)
     {
-        queue_stat_.wait();
-        queue_locker_.lock();
-        if (work_queue_.empty())
+        m_queuestat.wait();
+        m_queuelocker.lock();
+        if (m_workqueue.empty())
         {
-            queue_locker_.unlock();
+            m_queuelocker.unlock();
             continue;
         }
-        T *request = work_queue_.front();
-        work_queue_.pop_front();
-        queue_locker_.unlock();
+        T *request = m_workqueue.front();
+        m_workqueue.pop_front();
+        m_queuelocker.unlock();
         if (!request)
             continue;
-        if (actor_model_ == 1)
+        if (1 == m_actor_model)
         {
-            if (request->state_ == 0)
+            if (0 == request->m_state)
             {
                 if (request->read_once())
                 {
-                    request->improve_ = 1;
-                    ConnectionRAII mysql_connect(&request->mysql, connect_pool_);
+                    request->improv = 1;
+                    connectionRAII mysqlcon(&request->mysql, m_connPool);
                     request->process();
                 }
                 else
                 {
-                    request->improve_ = 1;
-                    request->timer_flag_ = 1;
+                    request->improv = 1;
+                    request->timer_flag = 1;
                 }
             }
             else
             {
                 if (request->write())
                 {
-                    request->improve_ = 1;
+                    request->improv = 1;
                 }
                 else
                 {
-                    request->improve_ = 1;
-                    request->timer_flag_ = 1;
+                    request->improv = 1;
+                    request->timer_flag = 1;
                 }
             }
         }
         else
         {
-            ConnectionRAII mysql_connect(&request->mysql, connect_pool_);
+            connectionRAII mysqlcon(&request->mysql, m_connPool);
             request->process();
         }
     }
-};
-
+}
 #endif
