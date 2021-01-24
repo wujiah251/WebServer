@@ -8,7 +8,7 @@ WebServer::WebServer()
     //root文件夹路径
     char server_path[200];
     getcwd(server_path, 200);
-    char root[6] = "/root";
+    char root[8] = "/source";
     m_root = (char *)malloc(strlen(server_path) + strlen(root) + 1);
     strcpy(m_root, server_path);
     strcat(m_root, root);
@@ -78,9 +78,9 @@ void WebServer::log_write()
     {
         //初始化日志
         if (1 == m_log_write)
-            Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 800);
+            Log::get_instance()->init("./log/ServerLog", m_close_log, 2000, 800000, 800);
         else
-            Log::get_instance()->init("./ServerLog", m_close_log, 2000, 800000, 0);
+            Log::get_instance()->init("./log/ServerLog", m_close_log, 2000, 800000, 0);
     }
 }
 
