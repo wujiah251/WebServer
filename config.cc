@@ -2,61 +2,85 @@
 
 Config::Config()
 {
-    // 默认端口号
-    port_ = 9006;
-    //日志写入方式
-    log_write_ = 0;
-    // 触发组合模式，默认listen_fd LT + connect_fd LT
-    trig_mode_ = 0;
-    // listen_fd触发模式，默认LT
-    listen_trig_mode_ = 0;
-    // connect_fd触发模式，默认LT
-    connect_trig_mode_ = 0;
-    // 优雅关闭连接，默认不使用
-    opt_linger_ = 0;
-    // 数据库连接池数量，默认8
-    sql_num_ = 8;
-    // 线程池内的线程数量，默认8
-    thread_num_ = 8;
-    // 关闭日志，默认不关闭
-    close_log_ = 0;
-    // 并发模型，默认是proactor
-    actor_model_ = 0;
+    //端口号,默认9006
+    PORT = 9006;
+
+    //日志写入方式，默认同步
+    LOGWrite = 0;
+
+    //触发组合模式,默认listenfd LT + connfd LT
+    TRIGMode = 0;
+
+    //listenfd触发模式，默认LT
+    LISTENTrigmode = 0;
+
+    //connfd触发模式，默认LT
+    CONNTrigmode = 0;
+
+    //优雅关闭链接，默认不使用
+    OPT_LINGER = 0;
+
+    //数据库连接池数量,默认8
+    sql_num = 8;
+
+    //线程池内的线程数量,默认8
+    thread_num = 8;
+
+    //关闭日志,默认不关闭
+    close_log = 0;
+
+    //并发模型,默认是proactor
+    actor_model = 0;
 }
 
 void Config::parse_arg(int argc, char *argv[])
 {
     int opt;
-    const char *optstr = "p:l:m:o:s:t:c:a";
-    // 解析命令行参数，optarg是外部变量
-    while ((opt = getopt(argc, argv, optstr)) != -1)
+    const char *str = "p:l:m:o:s:t:c:a:";
+    while ((opt = getopt(argc, argv, str)) != -1)
     {
         switch (opt)
         {
         case 'p':
-            port_ = atoi(optarg);
+        {
+            PORT = atoi(optarg);
             break;
+        }
         case 'l':
-            log_write_ = atoi(optarg);
+        {
+            LOGWrite = atoi(optarg);
             break;
+        }
         case 'm':
-            trig_mode_ = atoi(optarg);
+        {
+            TRIGMode = atoi(optarg);
             break;
+        }
         case 'o':
-            opt_linger_ = atoi(optarg);
+        {
+            OPT_LINGER = atoi(optarg);
             break;
+        }
         case 's':
-            sql_num_ = atoi(optarg);
+        {
+            sql_num = atoi(optarg);
             break;
+        }
         case 't':
-            thread_num_ = atoi(optarg);
+        {
+            thread_num = atoi(optarg);
             break;
+        }
         case 'c':
-            close_log_ = atoi(optarg);
+        {
+            close_log = atoi(optarg);
             break;
+        }
         case 'a':
-            actor_model_ = atoi(optarg);
+        {
+            actor_model = atoi(optarg);
             break;
+        }
         default:
             break;
         }

@@ -1,5 +1,5 @@
-#ifndef WEBSERVER__WEBSERVER_H_
-#define WEBSERVER__WEBSERVER_H_
+#ifndef WEBSERVER_H
+#define WEBSERVER_H
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,85 +12,71 @@
 #include <cassert>
 #include <sys/epoll.h>
 
-#include "threadpool/threadpool.h"
-#include "http/http_connect.h"
-#include "config.h"
+#include "./threadpool/threadpool.h"
+#include "./http/http_connect.h"
 
-const int kMax_Fd = 65536;           //最大文件描述符
-const int kMax_Event_Number = 10000; //最大事件数
-const int kTime_Slot = 5;            //最小超时单位
+const int MAX_FD = 65536;           //最大文件描述符
+const int MAX_EVENT_NUMBER = 10000; //最大事件数
+const int TIMESLOT = 5;             //最小超时单位
 
 class WebServer
 {
 public:
     WebServer();
     ~WebServer();
-    // 初始化函数，导入配置
-    void init(int port, string user, string password, string database_name,
-              int log_write, int opt_linger, int trig_mode, int sql_num,
+
+    void init(int port, string user, string passWord, string databaseName,
+              int log_write, int opt_linger, int trigmode, int sql_num,
               int thread_num, int close_log, int actor_model);
-    // 线程池初始化
+
     void thread_pool();
-    // 初始化数据库连接池
     void sql_pool();
-    // 初始化日志
     void log_write();
-    // 设置触发组合模式：监听套接字、已连接套接字
     void trig_mode();
-    // 事件监听
-    void event_listen();
-    // 事件循环
-    void event_loop();
-    // 为已连接套接字设置定时器
-    void timer(int connect_fd, struct sockaddr_in client_address);
-    // 调整定时器在链表中的位置
-    void adjust_timer(Util_timer *timer);
-    // 处理定时器
-    void deal_timer(Util_timer *timer, int socket_fd);
-    // 处理客户端数据
-    bool deal_clinet_data();
-    // 处理信号
-    bool deal_signal(bool &timeout, bool &stop_server);
-    // 处理数据读入
-    void deal_read(int socket_fd);
-    // 处理数据写
-    void deal_write(int socket_fd);
+    void eventListen();
+    void eventLoop();
+    void timer(int connfd, struct sockaddr_in client_address);
+    void adjust_timer(util_timer *timer);
+    void deal_timer(util_timer *timer, int sockfd);
+    bool dealclinetdata();
+    bool dealwithsignal(bool &timeout, bool &stop_server);
+    void dealwithread(int sockfd);
+    void dealwithwrite(int sockfd);
 
 public:
-    int port_;        // 服务器端口号
-    char *root_;      //根路径，保存文本资源
-    int log_write_;   //日志写入方式
-    int close_log_;   //是否关闭日志
-    int actor_model_; //并发模型选择
+    //基础
+    int m_port;
+    char *m_root;
+    int m_log_write;
+    int m_close_log;
+    int m_actormodel;
 
-    int pipe_fd_[2]; //管道
-    int epoll_fd_;
-    // http连接类数组
-    Http_connect *users_;
+    int m_pipefd[2];
+    int m_epollfd;
+    http_conn *users;
 
-    // 数据库相关
-    Connection_pool *connect_pool_; //数据库连接池
-    string database_user_;          //登陆数据库用户名
-    string database_password_;      //登陆数据库密码
-    string database_name_;          //数据库名称
-    int sql_num_;                   //连接池规模
+    //数据库相关
+    connection_pool *m_connPool;
+    string m_user;         //登陆数据库用户名
+    string m_passWord;     //登陆数据库密码
+    string m_databaseName; //使用数据库名
+    int m_sql_num;
 
-    //线程池
-    Threadpool<Http_connect> *thread_pool_;
-    int thread_num_; //线程池规模
+    //线程池相关
+    threadpool<http_conn> *m_pool;
+    int m_thread_num;
 
-    // epoll_event相关
-    epoll_event epoll_events_[kMax_Event_Number];
+    //epoll_event相关
+    epoll_event events[MAX_EVENT_NUMBER];
 
-    int listen_fd_;         // 监听套接字标识符
-    int opt_linger_;        // 优雅关闭连接
-    int trig_mode_;         // 触发组合模式
-    int listen_trig_mode_;  // listen_fd触发模式
-    int connect_trig_mode_; // connect_fd触发模式
+    int m_listenfd;
+    int m_OPT_LINGER;
+    int m_TRIGMode;
+    int m_LISTENTrigmode;
+    int m_CONNTrigmode;
 
-    // 定时器相关
-    Client_data *users_timer_;
-    Utils utils_;
+    //定时器相关
+    client_data *users_timer;
+    Utils utils;
 };
-
 #endif
