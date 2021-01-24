@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/time.h>
-#include <../lock/locker.h>
+
+#include "../lock/locker.h"
 using namespace std;
 
 // 线程安全的循环队列
@@ -117,13 +118,13 @@ public:
     bool push(const T &item)
     {
         mutex_.lock();
-        if (size_ >= max_size)
+        if (size_ >= max_size_)
         {
             cond_.broadcast();
-            mutex.unlock();
+            mutex_.unlock();
             return false;
         }
-        back_ = (back_ + 1) % max_size();
+        back_ = (back_ + 1) % max_size_;
         array_[back_] = item;
         size_++;
         cond_.broadcast();
@@ -157,7 +158,8 @@ public:
         {
             t.tv_sec = now.tv_sec + timeout / 1000;            //秒
             t.tv_nsec = (now.tv_usec + timeout % 1000) * 1000; //纳秒
-            if (!cond_.time_wait(t){
+            if (!cond_.time_wait(mutex_.get(), t))
+            {
                 mutex_.unlock();
                 return false;
             }
@@ -168,7 +170,7 @@ public:
             return false;
         }
         front_ = (front_ + 1) % max_size_;
-        item = array[front_];
+        item = array_[front_];
         size_--;
         mutex_.unlock();
         return true;

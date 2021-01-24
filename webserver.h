@@ -26,7 +26,8 @@ public:
     WebServer();
     ~WebServer();
     // 初始化函数，导入配置
-    void init(Config *config, string user, string password, string name);
+    void init(int port, string user, string password, string database_name, int log_write, int opt_linger,
+              int trig_mode, int sql_num, int thread_num, int close_log, int actor_model);
     // 线程池
     void thread_pool();
     // 初始化数据库连接池

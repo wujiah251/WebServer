@@ -22,6 +22,8 @@
 #include <sys/uio.h>
 #include <time.h>
 
+class Util_timer;
+
 struct Client_data
 {
     sockaddr_in address_;

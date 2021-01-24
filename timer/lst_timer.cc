@@ -125,6 +125,31 @@ void Sort_timer_lst::del_timer(Util_timer *timer)
     delete timer;
 }
 
+void Sort_timer_lst::tick()
+{
+    if (!head_)
+    {
+        return;
+    }
+    time_t cur = time(NULL);
+    Util_timer *tmp = head_;
+    while (tmp)
+    {
+        if (cur < tmp->expire_)
+        {
+            break;
+        }
+        tmp->cb_func(tmp->user_data_);
+        head_ = tmp->next;
+        if (head_)
+        {
+            head_->prev = NULL;
+        }
+        delete tmp;
+        tmp = head_;
+    }
+}
+
 void Utils::init(int timeslot)
 {
     TIMESLOT = timeslot;
@@ -181,7 +206,6 @@ void Utils::add_sig(int sig, void(handler)(int), bool restart)
 //定时处理任务，重新定时以不断触发SIGALRM信号
 void Utils::timer_handler()
 {
-    // ????
     timer_lst_.tick();
     alarm(TIMESLOT);
 }

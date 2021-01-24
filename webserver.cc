@@ -28,20 +28,21 @@ WebServer::~WebServer()
     delete thread_pool_;   //释放线程池
 }
 
-void WebServer::init(Config *config, string user, string password, string name)
+void WebServer::init(int port, string user, string password, string database_name, int log_write, int opt_linger,
+                     int trig_mode, int sql_num, int thread_num, int close_log, int actor_model)
 {
     // 初始化服务器类的配置
     database_user_ = user;
     database_password_ = password;
-    database_name_ = name;
-    port_ = config->port_;
-    sql_num_ = config->sql_num_;
-    thread_num_ = config->thread_num_;
-    log_write_ = config->log_write_;
-    opt_linger_ = config->opt_linger_;
-    trig_mode_ = config->trig_mode_;
-    close_log_ = config->close_log_;
-    actor_model_ = config->actor_model_;
+    database_name_ = database_name;
+    port_ = port;
+    sql_num_ = sql_num;
+    thread_num_ = thread_num;
+    log_write_ = log_write;
+    opt_linger_ = opt_linger;
+    trig_mode_ = trig_mode;
+    close_log_ = close_log;
+    actor_model_ = actor_model;
 }
 
 void WebServer::trig_mode()
@@ -75,7 +76,6 @@ void WebServer::trig_mode()
 
 void WebServer::log_write()
 {
-
     if (close_log_ == 0)
     {
         // 没有关闭日志

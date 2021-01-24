@@ -87,7 +87,7 @@ int Http_connect::user_count_ = 0;
 int Http_connect::epoll_fd_ = -1;
 
 //关闭连接，关闭一个连接，客户总量减1
-void Http_connect::close_connect(bool real_close = true)
+void Http_connect::close_connect(bool real_close)
 {
     if (real_close && socket_fd_ != -1)
     {
@@ -304,9 +304,21 @@ Http_connect::HTTP_CODE Http_connect::parse_headers(char *text)
 //判断http请求是否被完整读入
 Http_connect::HTTP_CODE Http_connect::parse_content(char *text)
 {
+    if (read_idx_ >= (content_length_ + checked_idx_))
+    {
+        text[content_length_] = '\0';
+        // POST请求中最后为输入的用户名和密码
+        string_ = text;
+        return GET_REQUEST;
+    }
+    return NO_REQUEST;
+}
+
+Http_connect::HTTP_CODE Http_connect::process_read()
+{
     LINE_STATUS line_status = LINE_OK;
     HTTP_CODE ret = NO_REQUEST;
-    char **text = 0;
+    char *text = NULL;
     while ((check_state_ == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
     {
         text = get_line();

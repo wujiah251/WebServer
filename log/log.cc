@@ -105,7 +105,9 @@ void Log::write_log(int level, const char *format, ...)
 
         if (today_ != my_tm.tm_mday)
         {
-            snprintf(new_log, 255, "%s%s%s", dir_name_, tail, log_name_, count_ / split_lines_);
+            snprintf(new_log, 255, "%s%s%s", dir_name_, tail, log_name_);
+            today_ = my_tm.tm_mday;
+            count_ = 0;
         }
         else
         {

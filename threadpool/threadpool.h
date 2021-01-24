@@ -14,7 +14,7 @@ class Threadpool
 {
 public:
     //thread_number是线程池中的线程的数量，max_requests是请求队列中最多允许的、等待处理的请求的数量
-    Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number = 8, int max_request = 10000);
+    Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number = 8, int max_requests = 10000);
     ~Threadpool();
     bool append(T *request, int state);
     bool append_p(T *request);
@@ -35,12 +35,12 @@ private:
     int actor_model_;               //模型切换
 };
 template <typename T>
-Threadpool<T>::Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number = 8, int max_request = 10000)
+Threadpool<T>::Threadpool(int actor_model, Connection_pool *connect_pool, int thread_number, int max_requests)
     : actor_model_(actor_model), thread_number_(thread_number), max_requests_(max_requests), threads_(NULL), connect_pool_(connect_pool)
 {
     if (thread_number <= 0 || max_requests <= 0)
     {
-        throw std::exception;
+        throw std::exception();
     }
     threads_ = new pthread_t[thread_number];
     if (threads_ == NULL)
@@ -89,13 +89,21 @@ bool Threadpool<T>::append_p(T *request)
     queue_locker_.lock();
     if (work_queue_.size() >= max_requests_)
     {
-        queue_locker_unlock();
+        queue_locker_.unlock();
         return false;
     }
     work_queue_.push_back(request);
     queue_locker_.unlock();
     queue_stat_.post();
     return true;
+}
+
+template <typename T>
+void *Threadpool<T>::worker(void *arg)
+{
+    Threadpool *pool = (Threadpool *)arg;
+    pool->run();
+    return pool;
 }
 
 template <typename T>
@@ -135,11 +143,11 @@ void Threadpool<T>::run()
             {
                 if (request->write())
                 {
-                    request->improve = 1;
+                    request->improve_ = 1;
                 }
                 else
                 {
-                    request->improve = 1;
+                    request->improve_ = 1;
                     request->timer_flag_ = 1;
                 }
             }

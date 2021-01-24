@@ -15,7 +15,9 @@ int main(int argc, char *argv[])
 
     WebServer server;
     // 初始化
-    server.init(&config, user, password, database_name);
+    server.init(config.port_, user, password, database_name, config.log_write_,
+                config.opt_linger_, config.trig_mode_, config.sql_num_,
+                config.thread_num_, config.close_log_, config.actor_model_);
     // 日志
     server.log_write();
     // 数据库
