@@ -5,7 +5,7 @@ int main(int argc, char *argv[])
 {
     // 数据库信息，分别为数据库名称，登陆名，密码
     // 需要先在电脑中建立数据库
-    string user = "wujiahao";
+    string user = "root";
     string password = "wujiahao";
     string database_name = "webserver_database";
 

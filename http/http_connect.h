@@ -29,9 +29,9 @@
 class Http_connect
 {
 public:
-    static const int FILENAME_LEN = 200;
-    static const int READ_BUFFER_SIZE = 2048;
-    static const int WRITE_BUFFER_SIZE = 1024;
+    static const int FILENAME_LEN = 200;       //文件名长度
+    static const int READ_BUFFER_SIZE = 2048;  //读缓冲区大小
+    static const int WRITE_BUFFER_SIZE = 1024; //写缓冲区大小
     enum METHOD
     {
         GET = 0,
@@ -69,6 +69,8 @@ public:
     };
 
 public:
+    Http_connect() {}
+    ~Http_connect() {}
     void init(int socket_fd, const sockaddr_in &addr, char *, int, int, string user, string password, string sqlname);
     void close_connect(bool read_close = true);
     void process();
@@ -114,12 +116,12 @@ public:
 private:
     int socket_fd_;
     sockaddr_in address_;
-    char read_buf_[READ_BUFFER_SIZE];
-    int read_idx_;
+    char read_buf_[READ_BUFFER_SIZE]; //读缓冲区
+    int read_idx_;                    //读缓冲区索引
     int checked_idx_;
     int start_line_;
-    char write_buf_[WRITE_BUFFER_SIZE];
-    int write_idx_;
+    char write_buf_[WRITE_BUFFER_SIZE]; //写缓冲区
+    int write_idx_;                     //写缓冲区索引
     CHECK_STATE check_state_;
     METHOD method_;
     char real_file_[FILENAME_LEN];

@@ -32,10 +32,10 @@ void WebServer::init(int port, string user, string password, string database_nam
                      int trig_mode, int sql_num, int thread_num, int close_log, int actor_model)
 {
     // 初始化服务器类的配置
+    port_ = port;
     database_user_ = user;
     database_password_ = password;
     database_name_ = database_name;
-    port_ = port;
     sql_num_ = sql_num;
     thread_num_ = thread_num;
     log_write_ = log_write;
@@ -244,7 +244,7 @@ bool WebServer::deal_clinet_data()
             int connect_fd = accept(listen_fd_, (struct sockaddr *)&client_address, &client_address_length);
             if (connect_fd < 0)
             {
-                LOG_ERROR("%s", "Internal server busy");
+                LOG_ERROR("%s:errno is:%d", "accept error", errno);
                 break;
             }
             if (Http_connect::user_count_ >= kMax_Fd)

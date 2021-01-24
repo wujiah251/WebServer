@@ -30,7 +30,6 @@ void Connection_pool::init(string url, string user, string password, string data
     password_ = password;
     database_name_ = database_name;
     close_log_ = close_log;
-
     for (int i = 0; i < max_connection; i++)
     {
         MYSQL *connect = NULL;

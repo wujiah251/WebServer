@@ -17,17 +17,22 @@ map<string, string> users;
 
 void Http_connect::init_mysql_result(Connection_pool *connection_pool)
 {
+    // 先从连接池子中取一个连接
     MYSQL *mysql = NULL;
     ConnectionRAII mysql_connect(&mysql, connection_pool);
+
     // 在user表中检索username，passwd数据，浏览器端输入
-    if (mysql_query(mysql, "SELECT usename,passwd FROM user"))
+    if (mysql_query(mysql, "SELECT username,passwd FROM user"))
     {
         LOG_ERROR("SELECT error:%s\n", mysql_error(mysql));
     }
+    // 以下代码目的是将数据库中的user表读取出来，并把username-passwd键值对读取到查找表users中
     // 从表中检索完整的结果集
     MYSQL_RES *result = mysql_store_result(mysql);
+
     //返回结果集中的列数
     int num_fields = mysql_num_fields(result);
+
     // 返回所有字段结构的数组
     MYSQL_FIELD *fields = mysql_fetch_fields(result);
     while (MYSQL_ROW row = mysql_fetch_row(result))
@@ -41,9 +46,9 @@ void Http_connect::init_mysql_result(Connection_pool *connection_pool)
 //对文件描述符设置非阻塞
 int set_nonblocking(int fd)
 {
-    int old_option = fcntl(fd, F_GETFL);
-    int new_option = old_option | O_NONBLOCK;
-    fcntl(fd, F_SETFL, new_option);
+    int old_option = fcntl(fd, F_GETFL);      //获得之前的设置信息
+    int new_option = old_option | O_NONBLOCK; //生成新的设置信息
+    fcntl(fd, F_SETFL, new_option);           //重新设置
     return old_option;
 }
 
@@ -52,14 +57,14 @@ void addfd(int epoll_fd, int fd, bool one_shot, int trig_mode)
 {
     epoll_event event;
     event.data.fd = fd;
+
     if (1 == trig_mode)
         event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     else
         event.events = EPOLLIN | EPOLLRDHUP;
     if (one_shot)
         event.events |= EPOLLONESHOT;
-    if (one_shot)
-        event.events |= EPOLLONESHOT;
+
     epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
     set_nonblocking(fd);
 }
@@ -76,6 +81,7 @@ void mod_fd(int epoll_fd, int fd, int ev, int trig_mode)
 {
     epoll_event event;
     event.data.fd = fd;
+
     if (trig_mode == 1)
         event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
     else
@@ -146,7 +152,7 @@ void Http_connect::init()
 }
 
 //状态机，用于分析出一行的内容
-//返回值为行的读取状态，有LINE_BAD,LINE_OPEN
+//返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
 Http_connect::LINE_STATUS Http_connect::parse_line()
 {
     char temp;
@@ -171,6 +177,7 @@ Http_connect::LINE_STATUS Http_connect::parse_line()
             {
                 read_buf_[checked_idx_ - 1] = '\0';
                 read_buf_[checked_idx_++] = '\0';
+                return LINE_OK;
             }
             return LINE_BAD;
         }
@@ -225,9 +232,13 @@ Http_connect::HTTP_CODE Http_connect::parse_request_line(char *text)
     {
         return BAD_REQUEST;
     }
-    url_ += '\0';
+    *(url_++) = '\0';
     char *method = text;
-    if (strcasecmp(method, "POST") == 0)
+    if (strcasecmp(method, "GET") == 0)
+    {
+        method_ = GET;
+    }
+    else if (strcasecmp(method, "POST") == 0)
     {
         method_ = POST;
         cgi = 1;
@@ -318,7 +329,7 @@ Http_connect::HTTP_CODE Http_connect::process_read()
 {
     LINE_STATUS line_status = LINE_OK;
     HTTP_CODE ret = NO_REQUEST;
-    char *text = NULL;
+    char *text = 0;
     while ((check_state_ == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
     {
         text = get_line();
@@ -391,7 +402,7 @@ Http_connect::HTTP_CODE Http_connect::do_request()
             //如果是注册，先检测数据库中是否有重名的
             //没有重名的，进行增加数据
             char *sql_insert = (char *)malloc(sizeof(char) * 200);
-            strcpy(sql_insert, "ISERT INTO user(username, passwd) VALUES(");
+            strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
             strcat(sql_insert, "'");
             strcat(sql_insert, name);
             strcat(sql_insert, "', '");
@@ -401,7 +412,7 @@ Http_connect::HTTP_CODE Http_connect::do_request()
             if (users.find(name) == users.end())
             {
                 lock.lock();
-                int res = mysql_query(mysql, sql_insert);
+                int res = mysql_query(mysql, sql_insert); //插入
                 users.insert(pair<string, string>(name, password));
                 lock.unlock();
 
@@ -440,7 +451,7 @@ Http_connect::HTTP_CODE Http_connect::do_request()
     else if (*(p + 1) == '5')
     {
         char *url_real_ = (char *)malloc(sizeof(char) * 200);
-        strcpy(url_real_, "picture.html");
+        strcpy(url_real_, "/picture.html");
         strncpy(real_file_ + len, url_real_, strlen(url_real_));
         free(url_real_);
     }
@@ -583,7 +594,7 @@ bool Http_connect::add_blank_line()
 }
 bool Http_connect::add_content(const char *content)
 {
-    return add_response("%s", "\r\n");
+    return add_response("%s", content);
 }
 bool Http_connect::process_write(HTTP_CODE ret)
 {
@@ -601,7 +612,7 @@ bool Http_connect::process_write(HTTP_CODE ret)
     {
         add_status_line(404, error_404_title);
         add_headers(strlen(error_404_form));
-        if (!add_content(error_500_form))
+        if (!add_content(error_404_form))
             return false;
         break;
     }

@@ -1,5 +1,6 @@
-2021-01-24 12:07:46.926053 [info]:MySql Error
-2021-01-24 12:07:55.466106 [info]:MySql Error
-2021-01-24 12:07:57.824386 [info]:MySql Error
-2021-01-24 12:08:01.964695 [info]:MySql Error
-2021-01-24 12:08:29.557405 [info]:MySql Error
+2021-01-24 16:34:41.472199 [info]:timer tick
+2021-01-24 16:34:46.265002 [info]:deal with the client(127.0.0.1)
+2021-01-24 16:34:46.265064 [info]:adjust timer once
+2021-01-24 16:34:46.265080 [info]:GET / HTTP/1.1
+2021-01-24 16:34:46.265129 [info]:Host: localhost:9006
+2021-01-24 16:34:46.265169 [info]:User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:84.0) Gecko/20100101 Firefox/84.0

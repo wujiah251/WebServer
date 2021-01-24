@@ -26,33 +26,34 @@ public:
     WebServer();
     ~WebServer();
     // 初始化函数，导入配置
-    void init(int port, string user, string password, string database_name, int log_write, int opt_linger,
-              int trig_mode, int sql_num, int thread_num, int close_log, int actor_model);
-    // 线程池
+    void init(int port, string user, string password, string database_name,
+              int log_write, int opt_linger, int trig_mode, int sql_num,
+              int thread_num, int close_log, int actor_model);
+    // 线程池初始化
     void thread_pool();
     // 初始化数据库连接池
     void sql_pool();
-    // 初始化日志类
+    // 初始化日志
     void log_write();
     // 设置触发组合模式：监听套接字、已连接套接字
     void trig_mode();
-    //
+    // 事件监听
     void event_listen();
-    // 还没搞清楚
+    // 事件循环
     void event_loop();
-    // 还没搞清楚
+    // 为已连接套接字设置定时器
     void timer(int connect_fd, struct sockaddr_in client_address);
-    // 还没搞清楚
+    // 调整定时器在链表中的位置
     void adjust_timer(Util_timer *timer);
-    // 还没搞清楚
+    // 处理定时器
     void deal_timer(Util_timer *timer, int socket_fd);
-    // 还没搞清楚
+    // 处理客户端数据
     bool deal_clinet_data();
-    // 还没搞清楚
+    // 处理信号
     bool deal_signal(bool &timeout, bool &stop_server);
-    // 还没搞清楚
+    // 处理数据读入
     void deal_read(int socket_fd);
-    // 还没搞清楚
+    // 处理数据写
     void deal_write(int socket_fd);
 
 public:
