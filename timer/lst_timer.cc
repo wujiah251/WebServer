@@ -1,53 +1,131 @@
 #include "lst_timer.h"
 #include "../http/http_connect.h"
 
-Sort_timer_lst::Sort_timer_lst()
+sort_timer_lst::sort_timer_lst()
 {
-    head_ = NULL;
-    tail_ = NULL;
+    head = NULL;
+    tail = NULL;
 }
-
-Sort_timer_lst::~Sort_timer_lst()
+sort_timer_lst::~sort_timer_lst()
 {
-    Util_timer *tmp = head_;
+    util_timer *tmp = head;
     while (tmp)
     {
-        head_ = tmp->next;
+        head = tmp->next;
         delete tmp;
-        tmp = head_;
+        tmp = head;
     }
 }
 
-void Sort_timer_lst::add_timer(Util_timer *timer)
+void sort_timer_lst::add_timer(util_timer *timer)
 {
     if (!timer)
     {
         return;
     }
-    if (!head_)
+    if (!head)
     {
-        head_ = tail_ = timer;
+        head = tail = timer;
         return;
     }
-    if (timer->expire_ < head_->expire_)
+    if (timer->expire < head->expire)
     {
-        //升序
-        timer->next = head_;
-        head_->prev = timer;
-        head_ = timer;
+        timer->next = head;
+        head->prev = timer;
+        head = timer;
         return;
     }
-    // timer比head_大的情况
-    add_timer(timer, head_);
+    add_timer(timer, head);
 }
-
-void Sort_timer_lst::add_timer(Util_timer *timer, Util_timer *lst_head)
+void sort_timer_lst::adjust_timer(util_timer *timer)
 {
-    Util_timer *prev = lst_head;
-    Util_timer *tmp = prev->next;
+    if (!timer)
+    {
+        return;
+    }
+    util_timer *tmp = timer->next;
+    if (!tmp || (timer->expire < tmp->expire))
+    {
+        return;
+    }
+    if (timer == head)
+    {
+        head = head->next;
+        head->prev = NULL;
+        timer->next = NULL;
+        add_timer(timer, head);
+    }
+    else
+    {
+        timer->prev->next = timer->next;
+        timer->next->prev = timer->prev;
+        add_timer(timer, timer->next);
+    }
+}
+void sort_timer_lst::del_timer(util_timer *timer)
+{
+    if (!timer)
+    {
+        return;
+    }
+    if ((timer == head) && (timer == tail))
+    {
+        delete timer;
+        head = NULL;
+        tail = NULL;
+        return;
+    }
+    if (timer == head)
+    {
+        head = head->next;
+        head->prev = NULL;
+        delete timer;
+        return;
+    }
+    if (timer == tail)
+    {
+        tail = tail->prev;
+        tail->next = NULL;
+        delete timer;
+        return;
+    }
+    timer->prev->next = timer->next;
+    timer->next->prev = timer->prev;
+    delete timer;
+}
+void sort_timer_lst::tick()
+{
+    if (!head)
+    {
+        return;
+    }
+
+    time_t cur = time(NULL);
+    util_timer *tmp = head;
     while (tmp)
     {
-        if (timer->expire_ < tmp->expire_)
+        if (cur < tmp->expire)
+        {
+            break;
+        }
+        tmp->cb_func(tmp->user_data);
+        head = tmp->next;
+        if (head)
+        {
+            head->prev = NULL;
+        }
+        delete tmp;
+        tmp = head;
+    }
+}
+
+void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
+{
+    util_timer *prev = lst_head;
+    util_timer *tmp = prev->next;
+    while (tmp)
+    {
+        if (timer->expire < tmp->expire)
         {
             prev->next = timer;
             timer->next = tmp;
@@ -63,137 +141,54 @@ void Sort_timer_lst::add_timer(Util_timer *timer, Util_timer *lst_head)
         prev->next = timer;
         timer->prev = prev;
         timer->next = NULL;
-        tail_ = timer;
-    }
-}
-
-void Sort_timer_lst::adjust_timer(Util_timer *timer)
-{
-    if (!timer)
-    {
-        return;
-    }
-    Util_timer *tmp = timer->next;
-    if (!tmp || (timer->expire_ < tmp->expire_))
-    {
-        return;
-    }
-    if (timer == head_)
-    {
-        head_ = head_->next;
-        head_->prev = NULL;
-        timer->next = NULL;
-        add_timer(timer, head_);
-    }
-    else
-    {
-        timer->prev->next = timer->next;
-        timer->next->prev = timer->prev;
-        add_timer(timer, timer->next);
-    }
-}
-
-void Sort_timer_lst::del_timer(Util_timer *timer)
-{
-    if (!timer)
-    {
-        return;
-    }
-    if (timer == head_ && timer == tail_)
-    {
-        delete timer;
-        head_ = NULL;
-        tail_ = NULL;
-        return;
-    }
-    if (timer == head_)
-    {
-        head_ = head_->next;
-        head_->prev = NULL;
-        delete timer;
-        return;
-    }
-    if (timer == tail_)
-    {
-        tail_ = tail_->prev;
-        tail_->next = NULL;
-        delete timer;
-        return;
-    }
-    timer->prev->next = timer->next;
-    timer->next->prev = timer->prev;
-    delete timer;
-}
-
-void Sort_timer_lst::tick()
-{
-    if (!head_)
-    {
-        return;
-    }
-    time_t cur = time(NULL);
-    Util_timer *tmp = head_;
-    while (tmp)
-    {
-        if (cur < tmp->expire_)
-        {
-            break;
-        }
-        tmp->cb_func(tmp->user_data_);
-        head_ = tmp->next;
-        if (head_)
-        {
-            head_->prev = NULL;
-        }
-        delete tmp;
-        tmp = head_;
+        tail = timer;
     }
 }
 
 void Utils::init(int timeslot)
 {
-    TIMESLOT = timeslot;
+    m_TIMESLOT = timeslot;
 }
 
 //对文件描述符设置非阻塞
-int Utils::set_nonblocking(int fd)
+int Utils::setnonblocking(int fd)
 {
-    int old_option = fcntl(fd, F_GETFL);      //F_GETFL：获取文件标志状态
-    int new_option = old_option | O_NONBLOCK; //O_NONBLOCK：非阻塞
-    fcntl(fd, F_SETFL, new_option);           //F——SETFL：设置文件状态标志
+    int old_option = fcntl(fd, F_GETFL);
+    int new_option = old_option | O_NONBLOCK;
+    fcntl(fd, F_SETFL, new_option);
     return old_option;
 }
+
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void Utils::add_fd(int epoll_fd, int fd, bool one_shot, int trig_mode)
+void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
 {
-    // ？？？？？？
     epoll_event event;
     event.data.fd = fd;
-    if (trig_mode == 1)
+
+    if (1 == TRIGMode)
         event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
     else
         event.events = EPOLLIN | EPOLLRDHUP;
+
     if (one_shot)
-        epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
-    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, fd, &event);
-    set_nonblocking(fd);
+        event.events |= EPOLLONESHOT;
+    epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
+    setnonblocking(fd);
 }
 
-// 信号处理函数
+//信号处理函数
 void Utils::sig_handler(int sig)
 {
-    // ??????
-    // 为保证函数的可重入性，保留原来的errno
+    //为保证函数的可重入性，保留原来的errno
     int save_errno = errno;
     int msg = sig;
-    send(u_pipe_fd_[1], (char *)&msg, 1, 0);
+    send(u_pipefd[1], (char *)&msg, 1, 0);
     errno = save_errno;
 }
 
 //设置信号函数
-void Utils::add_sig(int sig, void(handler)(int), bool restart)
+void Utils::addsig(int sig, void(handler)(int), bool restart)
 {
-    // ?????
     struct sigaction sa;
     memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = handler;
@@ -206,24 +201,24 @@ void Utils::add_sig(int sig, void(handler)(int), bool restart)
 //定时处理任务，重新定时以不断触发SIGALRM信号
 void Utils::timer_handler()
 {
-    timer_lst_.tick();
-    alarm(TIMESLOT);
+    m_timer_lst.tick();
+    alarm(m_TIMESLOT);
 }
 
-void Utils::show_error(int connect_fd, const char *info)
+void Utils::show_error(int connfd, const char *info)
 {
-    send(connect_fd, info, strlen(info), 0);
-    close(connect_fd);
+    send(connfd, info, strlen(info), 0);
+    close(connfd);
 }
 
-int *Utils::u_pipe_fd_ = 0;
-int Utils::u_epoll_fd_ = 0;
+int *Utils::u_pipefd = 0;
+int Utils::u_epollfd = 0;
 
 class Utils;
-void cb_func(Client_data *user_data)
+void cb_func(client_data *user_data)
 {
-    epoll_ctl(Utils::u_epoll_fd_, EPOLL_CTL_DEL, user_data->socket_fd_, 0);
+    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, 0);
     assert(user_data);
-    close(user_data->socket_fd_);
-    Http_connect::user_count_--;
+    close(user_data->sockfd);
+    http_conn::m_user_count--;
 }
