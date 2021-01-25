@@ -147,8 +147,13 @@ void WebServer::eventListen()
     utils.setnonblocking(m_pipefd[1]);
     utils.addfd(m_epollfd, m_pipefd[0], false, 0);
 
+    // 当服务器一端关闭连接时莫若继续发送数据，则会受到RST响应
+    // 然后再发送数据时，系统会发出一个SIGPIPE信号给进程，告诉进程这个连接已经断开，不要再写了
+    // 根据信号的默认处理规则SIGPIPE信号的默认执行是终止。若不想推出，可以把SIGPIPE设为SIG_IGN
     utils.addsig(SIGPIPE, SIG_IGN);
+    // 设置对SIGALRM信号的处理（将信号发送到管道）
     utils.addsig(SIGALRM, utils.sig_handler, false);
+    // 设置对SIGTERM信号的处理（将信号发送到管道）
     utils.addsig(SIGTERM, utils.sig_handler, false);
 
     alarm(TIMESLOT);
@@ -381,6 +386,12 @@ void WebServer::eventLoop()
 
     while (!stop_server)
     {
+        // 等待m_epollfd事件中的事件发生
+        // events指向调用者可以使用的事件内存区域
+        // MAX_EVENT_NUMBER用来告诉内核有多少个events
+        // 最后的-1表示无限期阻塞，知道有有事件发生
+        // 在events中设置事件
+        // 返回值表锁有多少个IO事件就绪，-1则表示超时
         int number = epoll_wait(m_epollfd, events, MAX_EVENT_NUMBER, -1);
         if (number < 0 && errno != EINTR)
         {
@@ -402,6 +413,9 @@ void WebServer::eventLoop()
             else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
             {
                 //服务器端关闭连接，移除对应的定时器
+                //EPOLLRDHUP-对端断开连接
+                //EPOLLHUP-对应的文件描述符被挂断
+                //EPOLLERR-对应的文件描述符发生错误
                 util_timer *timer = users_timer[sockfd].timer;
                 deal_timer(timer, sockfd);
             }
