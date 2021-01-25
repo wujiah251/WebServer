@@ -130,7 +130,6 @@ public:
         m_mutex.lock();
         if (m_size >= m_max_size)
         {
-
             m_cond.broadcast();
             m_mutex.unlock();
             return false;
