@@ -73,7 +73,7 @@ public:
     ~http_conn() {}
 
 public:
-    void init(int sockfd, const sockaddr_in &addr, char *, int, int, string user, string passwd, string sqlname);
+    void init(int sockfd, const sockaddr_in &addr, char *, int TRIGMode, string user, string passwd, string sqlname);
     void close_conn(bool real_close = true);
     void process();
     bool read_once();
@@ -141,7 +141,6 @@ private:
 
     map<string, string> m_users;
     int m_TRIGMode;
-    int m_close_log;
 
     char sql_user[100];
     char sql_passwd[100];

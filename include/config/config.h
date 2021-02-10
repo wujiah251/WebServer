@@ -31,9 +31,6 @@ public:
     //线程池内的线程数量
     int thread_num;
 
-    //是否关闭日志
-    int close_log;
-
     //并发模型选择
     int actor_model;
 };

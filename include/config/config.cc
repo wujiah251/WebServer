@@ -20,9 +20,6 @@ Config::Config()
     //线程池内的线程数量,默认8
     thread_num = 8;
 
-    //关闭日志,默认不关闭
-    close_log = 0;
-
     //并发模型,默认是proactor
     actor_model = 0;
 }
@@ -53,11 +50,6 @@ void Config::parse_arg(int argc, char *argv[])
         case 't':
         {
             thread_num = atoi(optarg);
-            break;
-        }
-        case 'c':
-        {
-            close_log = atoi(optarg);
             break;
         }
         case 'a':

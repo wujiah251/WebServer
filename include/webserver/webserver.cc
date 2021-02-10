@@ -29,8 +29,7 @@ WebServer::~WebServer()
 }
 
 void WebServer::init(int port, string user, string passWord, string databaseName,
-                     int trigmode, int sql_num, int thread_num,
-                     int close_log, int actor_model)
+                     int trigmode, int sql_num, int thread_num, int actor_model)
 {
     m_port = port;
     m_user = user;
@@ -39,7 +38,6 @@ void WebServer::init(int port, string user, string passWord, string databaseName
     m_sql_num = sql_num;
     m_thread_num = thread_num;
     m_TRIGMode = trigmode;
-    m_close_log = close_log;
     m_actormodel = actor_model;
 }
 
@@ -73,18 +71,16 @@ void WebServer::trig_mode()
 
 void WebServer::log_write()
 {
-    if (0 == m_close_log)
-    {
-        //初始化日志
-        Log::get_instance()->init("./log/ServerLog", m_close_log, 2000, 800000, 800);
-    }
+
+    //初始化日志
+    Log::get_instance()->init("./log/ServerLog", 2000, 800000, 800);
 }
 
 void WebServer::sql_pool()
 {
     //初始化数据库连接池
     m_connPool = connection_pool::GetInstance();
-    m_connPool->init("localhost", m_user, m_passWord, m_databaseName, 3306, m_sql_num, m_close_log);
+    m_connPool->init("localhost", m_user, m_passWord, m_databaseName, 3306, m_sql_num);
 
     //初始化数据库读取表
     users->initmysql_result(m_connPool);
@@ -152,7 +148,7 @@ void WebServer::eventListen()
 
 void WebServer::timer(int connfd, struct sockaddr_in client_address)
 {
-    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_close_log, m_user, m_passWord, m_databaseName);
+    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_user, m_passWord, m_databaseName);
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中

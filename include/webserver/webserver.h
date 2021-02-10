@@ -30,7 +30,7 @@ public:
 
     void init(int port, string user, string passWord, string databaseName,
               int trigmode, int sql_num,
-              int thread_num, int close_log, int actor_model);
+              int thread_num, int actor_model);
 
     void thread_pool();
     void sql_pool();
@@ -50,7 +50,6 @@ public:
     //基础
     int m_port;
     char *m_root;
-    int m_close_log;
     int m_actormodel;
 
     int m_pipefd[2];
