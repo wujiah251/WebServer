@@ -14,8 +14,7 @@ int main(int argc, char *argv[])
     WebServer server;
 
     //初始化
-    server.init(config.PORT, user, passwd, databasename,
-                config.OPT_LINGER, config.TRIGMode,
+    server.init(config.PORT, user, passwd, databasename, config.TRIGMode,
                 config.sql_num, config.thread_num,
                 config.close_log, config.actor_model);
 

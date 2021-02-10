@@ -14,9 +14,6 @@ Config::Config()
     //connfd触发模式，默认LT
     CONNTrigmode = 0;
 
-    //优雅关闭链接，默认不使用
-    OPT_LINGER = 0;
-
     //数据库连接池数量,默认8
     sql_num = 8;
 
@@ -46,11 +43,6 @@ void Config::parse_arg(int argc, char *argv[])
         case 'm':
         {
             TRIGMode = atoi(optarg);
-            break;
-        }
-        case 'o':
-        {
-            OPT_LINGER = atoi(optarg);
             break;
         }
         case 's':

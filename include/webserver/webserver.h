@@ -29,7 +29,7 @@ public:
     ~WebServer();
 
     void init(int port, string user, string passWord, string databaseName,
-              int opt_linger, int trigmode, int sql_num,
+              int trigmode, int sql_num,
               int thread_num, int close_log, int actor_model);
 
     void thread_pool();
@@ -72,7 +72,6 @@ public:
     epoll_event events[MAX_EVENT_NUMBER];
 
     int m_listenfd;
-    int m_OPT_LINGER;
     int m_TRIGMode;
     int m_LISTENTrigmode;
     int m_CONNTrigmode;

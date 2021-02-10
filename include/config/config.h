@@ -25,9 +25,6 @@ public:
     //connfd触发模式
     int CONNTrigmode;
 
-    //优雅关闭链接
-    int OPT_LINGER;
-
     //数据库连接池数量
     int sql_num;
 
