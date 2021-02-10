@@ -29,7 +29,7 @@ WebServer::~WebServer()
 }
 
 void WebServer::init(int port, string user, string passWord, string databaseName,
-                     int trigmode, int sql_num, int thread_num, int actor_model)
+                     int sql_num, int thread_num, int actor_model)
 {
     m_port = port;
     m_user = user;
@@ -37,41 +37,11 @@ void WebServer::init(int port, string user, string passWord, string databaseName
     m_databaseName = databaseName;
     m_sql_num = sql_num;
     m_thread_num = thread_num;
-    m_TRIGMode = trigmode;
     m_actormodel = actor_model;
-}
-
-void WebServer::trig_mode()
-{
-    //LT + LT
-    if (0 == m_TRIGMode)
-    {
-        m_LISTENTrigmode = 0;
-        m_CONNTrigmode = 0;
-    }
-    //LT + ET
-    else if (1 == m_TRIGMode)
-    {
-        m_LISTENTrigmode = 0;
-        m_CONNTrigmode = 1;
-    }
-    //ET + LT
-    else if (2 == m_TRIGMode)
-    {
-        m_LISTENTrigmode = 1;
-        m_CONNTrigmode = 0;
-    }
-    //ET + ET
-    else if (3 == m_TRIGMode)
-    {
-        m_LISTENTrigmode = 1;
-        m_CONNTrigmode = 1;
-    }
 }
 
 void WebServer::log_write()
 {
-
     //初始化日志
     Log::get_instance()->init("./log/ServerLog", 2000, 800000, 800);
 }
@@ -122,13 +92,13 @@ void WebServer::eventListen()
     m_epollfd = epoll_create(5);
     assert(m_epollfd != -1);
 
-    utils.addfd(m_epollfd, m_listenfd, false, m_LISTENTrigmode);
+    utils.addfd(m_epollfd, m_listenfd, false);
     http_conn::m_epollfd = m_epollfd;
 
     ret = socketpair(PF_UNIX, SOCK_STREAM, 0, m_pipefd);
     assert(ret != -1);
     utils.setnonblocking(m_pipefd[1]);
-    utils.addfd(m_epollfd, m_pipefd[0], false, 0);
+    utils.addfd(m_epollfd, m_pipefd[0], false);
 
     // 当服务器一端关闭连接时莫若继续发送数据，则会受到RST响应
     // 然后再发送数据时，系统会发出一个SIGPIPE信号给进程，告诉进程这个连接已经断开，不要再写了
@@ -148,7 +118,7 @@ void WebServer::eventListen()
 
 void WebServer::timer(int connfd, struct sockaddr_in client_address)
 {
-    users[connfd].init(connfd, client_address, m_root, m_CONNTrigmode, m_user, m_passWord, m_databaseName);
+    users[connfd].init(connfd, client_address, m_root, m_user, m_passWord, m_databaseName);
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
@@ -189,43 +159,20 @@ bool WebServer::dealclinetdata()
 {
     struct sockaddr_in client_address;
     socklen_t client_addrlength = sizeof(client_address);
-    if (0 == m_LISTENTrigmode)
+    // LT模式的监听套接字
+    int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
+    if (connfd < 0)
     {
-        int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
-        if (connfd < 0)
-        {
-            LOG_ERROR("%s:errno is:%d", "accept error", errno);
-            return false;
-        }
-        if (http_conn::m_user_count >= MAX_FD)
-        {
-            utils.show_error(connfd, "Internal server busy");
-            LOG_ERROR("%s", "Internal server busy");
-            return false;
-        }
-        timer(connfd, client_address);
-    }
-
-    else
-    {
-        while (1)
-        {
-            int connfd = accept(m_listenfd, (struct sockaddr *)&client_address, &client_addrlength);
-            if (connfd < 0)
-            {
-                LOG_ERROR("%s:errno is:%d", "accept error", errno);
-                break;
-            }
-            if (http_conn::m_user_count >= MAX_FD)
-            {
-                utils.show_error(connfd, "Internal server busy");
-                LOG_ERROR("%s", "Internal server busy");
-                break;
-            }
-            timer(connfd, client_address);
-        }
+        LOG_ERROR("%s:errno is:%d", "accept error", errno);
         return false;
     }
+    if (http_conn::m_user_count >= MAX_FD)
+    {
+        utils.show_error(connfd, "Internal server busy");
+        LOG_ERROR("%s", "Internal server busy");
+        return false;
+    }
+    timer(connfd, client_address);
     return true;
 }
 

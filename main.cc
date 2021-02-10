@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     WebServer server;
 
     //初始化
-    server.init(config.PORT, user, passwd, databasename, config.TRIGMode,
+    server.init(config.PORT, user, passwd, databasename,
                 config.sql_num, config.thread_num, config.actor_model);
 
     //日志
@@ -25,9 +25,6 @@ int main(int argc, char *argv[])
 
     //线程池
     server.thread_pool();
-
-    //触发模式
-    server.trig_mode();
 
     //监听
     server.eventListen();

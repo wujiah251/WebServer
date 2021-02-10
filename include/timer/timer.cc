@@ -160,15 +160,11 @@ int Utils::setnonblocking(int fd)
 }
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
+void Utils::addfd(int epollfd, int fd, bool one_shot)
 {
     epoll_event event;
     event.data.fd = fd;
-
-    if (1 == TRIGMode)
-        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
-    else
-        event.events = EPOLLIN | EPOLLRDHUP;
+    event.events = EPOLLIN | EPOLLRDHUP;
 
     if (one_shot)
         event.events |= EPOLLONESHOT;

@@ -29,8 +29,7 @@ public:
     ~WebServer();
 
     void init(int port, string user, string passWord, string databaseName,
-              int trigmode, int sql_num,
-              int thread_num, int actor_model);
+              int sql_num, int thread_num, int actor_model);
 
     void thread_pool();
     void sql_pool();
@@ -71,9 +70,6 @@ public:
     epoll_event events[MAX_EVENT_NUMBER];
 
     int m_listenfd;
-    int m_TRIGMode;
-    int m_LISTENTrigmode;
-    int m_CONNTrigmode;
 
     //定时器相关
     client_data *users_timer;

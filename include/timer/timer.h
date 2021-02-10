@@ -77,7 +77,7 @@ public:
     int setnonblocking(int fd);
 
     //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-    void addfd(int epollfd, int fd, bool one_shot, int TRIGMode);
+    void addfd(int epollfd, int fd, bool one_shot);
 
     //信号处理函数
     static void sig_handler(int sig);

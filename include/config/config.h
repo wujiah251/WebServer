@@ -16,15 +16,6 @@ public:
     //端口号
     int PORT;
 
-    //触发组合模式
-    int TRIGMode;
-
-    //listenfd触发模式
-    int LISTENTrigmode;
-
-    //connfd触发模式
-    int CONNTrigmode;
-
     //数据库连接池数量
     int sql_num;
 

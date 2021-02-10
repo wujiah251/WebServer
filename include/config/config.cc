@@ -5,15 +5,6 @@ Config::Config()
     //端口号,默认12000
     PORT = 12000;
 
-    //触发组合模式,默认listenfd LT + connfd LT
-    TRIGMode = 0;
-
-    //listenfd触发模式，默认LT
-    LISTENTrigmode = 0;
-
-    //connfd触发模式，默认LT
-    CONNTrigmode = 0;
-
     //数据库连接池数量,默认8
     sql_num = 8;
 
@@ -27,7 +18,7 @@ Config::Config()
 void Config::parse_arg(int argc, char *argv[])
 {
     int opt;
-    const char *str = "p:l:m:o:s:t:c:a:";
+    const char *str = "p:s:t:a:";
     while ((opt = getopt(argc, argv, str)) != -1)
     {
         switch (opt)
@@ -35,11 +26,6 @@ void Config::parse_arg(int argc, char *argv[])
         case 'p':
         {
             PORT = atoi(optarg);
-            break;
-        }
-        case 'm':
-        {
-            TRIGMode = atoi(optarg);
             break;
         }
         case 's':

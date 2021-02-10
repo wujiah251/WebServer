@@ -57,15 +57,12 @@ int setnonblocking(int fd)
 }
 
 //将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
-void addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
+void addfd(int epollfd, int fd, bool one_shot)
 {
     epoll_event event;
     event.data.fd = fd;
 
-    if (1 == TRIGMode)
-        event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
-    else
-        event.events = EPOLLIN | EPOLLRDHUP;
+    event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
 
     if (one_shot)
         event.events |= EPOLLONESHOT;
@@ -81,16 +78,11 @@ void removefd(int epollfd, int fd)
 }
 
 //将事件重置为EPOLLONESHOT
-void modfd(int epollfd, int fd, int ev, int TRIGMode)
+void modfd(int epollfd, int fd, int ev)
 {
     epoll_event event;
     event.data.fd = fd;
-
-    if (1 == TRIGMode)
-        event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
-    else
-        event.events = ev | EPOLLONESHOT | EPOLLRDHUP;
-
+    event.events = ev | EPOLLET | EPOLLONESHOT | EPOLLRDHUP;
     epoll_ctl(epollfd, EPOLL_CTL_MOD, fd, &event);
 }
 
@@ -110,18 +102,17 @@ void http_conn::close_conn(bool real_close)
 }
 
 //初始化连接,外部调用初始化套接字地址
-void http_conn::init(int sockfd, const sockaddr_in &addr, char *root, int TRIGMode,
+void http_conn::init(int sockfd, const sockaddr_in &addr, char *root,
                      string user, string passwd, string sqlname)
 {
     m_sockfd = sockfd;
     m_address = addr;
 
-    addfd(m_epollfd, sockfd, true, m_TRIGMode);
+    addfd(m_epollfd, sockfd, true);
     m_user_count++;
 
     //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
     doc_root = root;
-    m_TRIGMode = TRIGMode;
 
     strcpy(sql_user, user.c_str());
     strcpy(sql_passwd, passwd.c_str());
@@ -202,39 +193,23 @@ bool http_conn::read_once()
     }
     int bytes_read = 0;
 
-    //LT读取数据
-    if (0 == m_TRIGMode)
+    //ET模式读数据
+    while (true)
     {
         bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
-        m_read_idx += bytes_read;
-
-        if (bytes_read <= 0)
+        if (bytes_read == -1)
+        {
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+                break;
+            return false;
+        }
+        else if (bytes_read == 0)
         {
             return false;
         }
-
-        return true;
+        m_read_idx += bytes_read;
     }
-    //ET读数据
-    else
-    {
-        while (true)
-        {
-            bytes_read = recv(m_sockfd, m_read_buf + m_read_idx, READ_BUFFER_SIZE - m_read_idx, 0);
-            if (bytes_read == -1)
-            {
-                if (errno == EAGAIN || errno == EWOULDBLOCK)
-                    break;
-                return false;
-            }
-            else if (bytes_read == 0)
-            {
-                return false;
-            }
-            m_read_idx += bytes_read;
-        }
-        return true;
-    }
+    return true;
 }
 
 //解析http请求行，获得请求方法，目标url及http版本号
@@ -526,7 +501,7 @@ bool http_conn::write()
 
     if (bytes_to_send == 0)
     {
-        modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+        modfd(m_epollfd, m_sockfd, EPOLLIN);
         init();
         return true;
     }
@@ -539,7 +514,7 @@ bool http_conn::write()
         {
             if (errno == EAGAIN)
             {
-                modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+                modfd(m_epollfd, m_sockfd, EPOLLOUT);
                 return true;
             }
             unmap();
@@ -563,7 +538,7 @@ bool http_conn::write()
         if (bytes_to_send <= 0)
         {
             unmap();
-            modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+            modfd(m_epollfd, m_sockfd, EPOLLIN);
 
             if (m_linger)
             {
@@ -689,7 +664,7 @@ void http_conn::process()
     HTTP_CODE read_ret = process_read();
     if (read_ret == NO_REQUEST)
     {
-        modfd(m_epollfd, m_sockfd, EPOLLIN, m_TRIGMode);
+        modfd(m_epollfd, m_sockfd, EPOLLIN);
         return;
     }
     bool write_ret = process_write(read_ret);
@@ -697,5 +672,5 @@ void http_conn::process()
     {
         close_conn();
     }
-    modfd(m_epollfd, m_sockfd, EPOLLOUT, m_TRIGMode);
+    modfd(m_epollfd, m_sockfd, EPOLLOUT);
 }
