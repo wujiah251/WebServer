@@ -16,9 +16,6 @@ public:
     //端口号
     int PORT;
 
-    //日志写入方式
-    int LOGWrite;
-
     //触发组合模式
     int TRIGMode;
 

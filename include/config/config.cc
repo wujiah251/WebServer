@@ -5,9 +5,6 @@ Config::Config()
     //端口号,默认12000
     PORT = 12000;
 
-    //日志写入方式，默认同步
-    LOGWrite = 0;
-
     //触发组合模式,默认listenfd LT + connfd LT
     TRIGMode = 0;
 
@@ -44,11 +41,6 @@ void Config::parse_arg(int argc, char *argv[])
         case 'p':
         {
             PORT = atoi(optarg);
-            break;
-        }
-        case 'l':
-        {
-            LOGWrite = atoi(optarg);
             break;
         }
         case 'm':
