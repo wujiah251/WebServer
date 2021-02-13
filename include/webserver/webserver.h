@@ -18,6 +18,7 @@
 #include "../lock/locker.h"
 #include "../log/log.h"
 #include "../timer/timer.h"
+#include "../config/config.h"
 const int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
 const int TIMESLOT = 5;             //最小超时单位
@@ -28,9 +29,8 @@ public:
     WebServer();
     ~WebServer();
 
-    void init(int port, string user, string passWord, string databaseName,
-              int sql_num, int thread_num, int actor_model);
-
+    void init(int port, int sql_num, int thread_num,
+              string user, string passWord, string databaseName);
     void thread_pool();
     void sql_pool();
     void log_write();
@@ -49,7 +49,6 @@ public:
     //基础
     int m_port;
     char *m_root;
-    int m_actormodel;
 
     int m_pipefd[2];
     int m_epollfd;

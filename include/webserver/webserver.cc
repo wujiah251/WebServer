@@ -28,16 +28,15 @@ WebServer::~WebServer()
     delete m_pool;
 }
 
-void WebServer::init(int port, string user, string passWord, string databaseName,
-                     int sql_num, int thread_num, int actor_model)
+void WebServer::init(int port, int sql_num, int thread_num,
+                     string user, string passWord, string databaseName)
 {
     m_port = port;
+    m_sql_num = sql_num;
+    m_thread_num = thread_num;
     m_user = user;
     m_passWord = passWord;
     m_databaseName = databaseName;
-    m_sql_num = sql_num;
-    m_thread_num = thread_num;
-    m_actormodel = actor_model;
 }
 
 void WebServer::log_write()
@@ -59,7 +58,7 @@ void WebServer::sql_pool()
 void WebServer::thread_pool()
 {
     //线程池
-    m_pool = new threadpool<http_conn>(m_actormodel, m_connPool, m_thread_num);
+    m_pool = new threadpool<http_conn>(m_connPool, m_thread_num);
 }
 
 void WebServer::eventListen()
@@ -216,96 +215,42 @@ void WebServer::dealwithread(int sockfd)
 {
     util_timer *timer = users_timer[sockfd].timer;
 
-    //reactor
-    if (1 == m_actormodel)
+    //proactor
+    if (users[sockfd].read_once())
     {
+        LOG_INFO("deal with the client(%s)", inet_ntoa(users[sockfd].get_address()->sin_addr));
+
+        //若监测到读事件，将该事件放入请求队列
+        m_pool->append(users + sockfd);
+
         if (timer)
         {
             adjust_timer(timer);
         }
-
-        //若监测到读事件，将该事件放入请求队列
-        m_pool->append(users + sockfd, 0);
-
-        while (true)
-        {
-            if (1 == users[sockfd].improv)
-            {
-                if (1 == users[sockfd].timer_flag)
-                {
-                    deal_timer(timer, sockfd);
-                    users[sockfd].timer_flag = 0;
-                }
-                users[sockfd].improv = 0;
-                break;
-            }
-        }
     }
     else
     {
-        //proactor
-        if (users[sockfd].read_once())
-        {
-            LOG_INFO("deal with the client(%s)", inet_ntoa(users[sockfd].get_address()->sin_addr));
-
-            //若监测到读事件，将该事件放入请求队列
-            m_pool->append_p(users + sockfd);
-
-            if (timer)
-            {
-                adjust_timer(timer);
-            }
-        }
-        else
-        {
-            deal_timer(timer, sockfd);
-        }
+        deal_timer(timer, sockfd);
     }
 }
 
 void WebServer::dealwithwrite(int sockfd)
 {
     util_timer *timer = users_timer[sockfd].timer;
-    //reactor
-    if (1 == m_actormodel)
+
+    //proactor
+    if (users[sockfd].write())
     {
+        LOG_INFO("send data to the client(%s)", inet_ntoa(users[sockfd].get_address()->sin_addr));
+
         if (timer)
         {
             adjust_timer(timer);
         }
-
-        m_pool->append(users + sockfd, 1);
-
-        while (true)
-        {
-            if (1 == users[sockfd].improv)
-            {
-                if (1 == users[sockfd].timer_flag)
-                {
-                    deal_timer(timer, sockfd);
-                    users[sockfd].timer_flag = 0;
-                }
-                users[sockfd].improv = 0;
-                break;
-            }
-        }
     }
     else
     {
-        //proactor
-        if (users[sockfd].write())
-        {
-            LOG_INFO("send data to the client(%s)", inet_ntoa(users[sockfd].get_address()->sin_addr));
-
-            if (timer)
-            {
-                adjust_timer(timer);
-            }
-        }
-        else
-        {
-            deal_timer(timer, sockfd);
-        }
+        deal_timer(timer, sockfd);
     }
 }
 

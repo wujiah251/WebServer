@@ -14,7 +14,7 @@ else
 	CXXFLAGS += -O2
 endif
 
-server:$(MAIN) $(TIMER) $(HTTP) $(SQL) $(LOG) $(WEBSERVER) $(CONFIG)
+server:$(MAIN) $(CONFIG) $(TIMER) $(HTTP) $(SQL) $(LOG) $(WEBSERVER)
 	$(CXX) -o $(TAR) $^ $(CXXFLAGS) -lpthread -lmysqlclient
 
 clean:
