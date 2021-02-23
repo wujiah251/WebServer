@@ -31,18 +31,12 @@ class http_conn
 public:
     static const int FILENAME_LEN = 200;
     static const int READ_BUFFER_SIZE = 2048;
-    static const int WRITE_BUFFER_SIZE = 1024;
+    static const int WRITE_BUFFER_SIZE = 2048;
     enum METHOD
     {
+        // 目前只支持这两种方法
         GET = 0,
-        POST,
-        HEAD,
-        PUT,
-        DELETE,
-        TRACE,
-        OPTIONS,
-        CONNECT,
-        PATH
+        POST
     };
     enum CHECK_STATE
     {
@@ -52,14 +46,14 @@ public:
     };
     enum HTTP_CODE
     {
-        NO_REQUEST,
-        GET_REQUEST,
-        BAD_REQUEST,
-        NO_RESOURCE,
-        FORBIDDEN_REQUEST,
-        FILE_REQUEST,
-        INTERNAL_ERROR,
-        CLOSED_CONNECTION
+        NO_REQUEST,        // 表示请求不完整
+        GET_REQUEST,       // 表示获得了一个完整的请求
+        BAD_REQUEST,       // 表示请求语法错误
+        NO_RESOURCE,       // 没有相关资源
+        FORBIDDEN_REQUEST, // 没有访问权限
+        FILE_REQUEST,      // 这是一个文件请求
+        INTERNAL_ERROR,    // 内部错误
+        CLOSED_CONNECTION  // 关闭连接
     };
     enum LINE_STATUS
     {

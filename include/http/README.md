@@ -3,12 +3,6 @@
 ``http_connect.h``、``http_connect.cc``中实现了http服务类-http_connect(为连接提供http服务，一个连接对应一个http_connect对象），还是实现了``setnoblocking()``、``addfd()``、``removefd()``、``modfd()``等功能函数。  
 上述功能函数用于设置epoll描述符的相关属性、向epoll内核事件表中添加/删除事件的功能。
 
-类包含以下成员变量：
-```
-
-```
-
-
 
 
 提供以下成员函数

@@ -4,13 +4,18 @@
 #include <fstream>
 
 //定义http响应的一些状态信息
+// 成功状态码：200
 const char *ok_200_title = "OK";
+// 请求语法错误：400
 const char *error_400_title = "Bad Request";
 const char *error_400_form = "Your request has bad syntax or is inherently impossible to staisfy.\n";
+// 请求被拒绝：403
 const char *error_403_title = "Forbidden";
 const char *error_403_form = "You do not have permission to get file form this server.\n";
+// 没有找到请求的资源
 const char *error_404_title = "Not Found";
 const char *error_404_form = "The requested file was not found on this server.\n";
+// 服务器内部错误
 const char *error_500_title = "Internal Error";
 const char *error_500_form = "There was an unusual problem serving the request file.\n";
 
@@ -70,7 +75,7 @@ void addfd(int epollfd, int fd, bool one_shot)
     setnonblocking(fd);
 }
 
-//从内核时间表删除描述符
+//从内核事件表表删除描述符
 void removefd(int epollfd, int fd)
 {
     epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
@@ -149,7 +154,7 @@ void http_conn::init()
     memset(m_real_file, '\0', FILENAME_LEN);
 }
 
-//从状态机，用于分析出一行内容
+//子状态机，用于分析出一行内容
 //返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
 http_conn::LINE_STATUS http_conn::parse_line()
 {
@@ -183,8 +188,7 @@ http_conn::LINE_STATUS http_conn::parse_line()
     return LINE_OPEN;
 }
 
-//循环读取客户数据，直到无数据可读或对方关闭连接
-//非阻塞ET工作模式下，需要一次性将数据读完
+//读取客户数据到读缓冲区，直到无数据可读或对方关闭连接，非阻塞ET工作模式下需要一次性将数据读完
 bool http_conn::read_once()
 {
     if (m_read_idx >= READ_BUFFER_SIZE)
@@ -260,7 +264,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     return NO_REQUEST;
 }
 
-//解析http请求的一个头部信息
+//解析http请求的首部行信息
 http_conn::HTTP_CODE http_conn::parse_headers(char *text)
 {
     if (text[0] == '\0')
@@ -300,7 +304,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text)
     return NO_REQUEST;
 }
 
-//判断http请求是否被完整读入
+//判断http请求是否被if (temp == '\r')完整读入
 http_conn::HTTP_CODE http_conn::parse_content(char *text)
 {
     if (m_read_idx >= (m_content_length + m_checked_idx))
@@ -309,52 +313,6 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text)
         //POST请求中最后为输入的用户名和密码
         m_string = text;
         return GET_REQUEST;
-    }
-    return NO_REQUEST;
-}
-
-http_conn::HTTP_CODE http_conn::process_read()
-{
-    LINE_STATUS line_status = LINE_OK;
-    HTTP_CODE ret = NO_REQUEST;
-    char *text = 0;
-
-    while ((m_check_state == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
-    {
-        text = get_line();
-        m_start_line = m_checked_idx;
-        LOG_INFO("%s", text);
-        switch (m_check_state)
-        {
-        case CHECK_STATE_REQUESTLINE:
-        {
-            ret = parse_request_line(text);
-            if (ret == BAD_REQUEST)
-                return BAD_REQUEST;
-            break;
-        }
-        case CHECK_STATE_HEADER:
-        {
-            ret = parse_headers(text);
-            if (ret == BAD_REQUEST)
-                return BAD_REQUEST;
-            else if (ret == GET_REQUEST)
-            {
-                return do_request();
-            }
-            break;
-        }
-        case CHECK_STATE_CONTENT:
-        {
-            ret = parse_content(text);
-            if (ret == GET_REQUEST)
-                return do_request();
-            line_status = LINE_OPEN;
-            break;
-        }
-        default:
-            return INTERNAL_ERROR;
-        }
     }
     return NO_REQUEST;
 }
@@ -471,6 +429,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     close(fd);
     return FILE_REQUEST;
 }
+
 void http_conn::unmap()
 {
     if (m_file_address)
@@ -479,6 +438,7 @@ void http_conn::unmap()
         m_file_address = 0;
     }
 }
+
 bool http_conn::write()
 {
     int temp = 0;
@@ -490,7 +450,7 @@ bool http_conn::write()
         return true;
     }
 
-    while (1)
+    while (true)
     {
         temp = writev(m_sockfd, m_iv, m_iv_count);
 
@@ -524,6 +484,7 @@ bool http_conn::write()
             unmap();
             modfd(m_epollfd, m_sockfd, EPOLLIN);
 
+            // 是否保持长连接
             if (m_linger)
             {
                 init();
@@ -536,6 +497,7 @@ bool http_conn::write()
         }
     }
 }
+
 bool http_conn::add_response(const char *format, ...)
 {
     if (m_write_idx >= WRITE_BUFFER_SIZE)
@@ -555,35 +517,89 @@ bool http_conn::add_response(const char *format, ...)
 
     return true;
 }
+
 bool http_conn::add_status_line(int status, const char *title)
 {
     return add_response("%s %d %s\r\n", "HTTP/1.1", status, title);
 }
+
 bool http_conn::add_headers(int content_len)
 {
     return add_content_length(content_len) && add_linger() &&
            add_blank_line();
 }
+
 bool http_conn::add_content_length(int content_len)
 {
     return add_response("Content-Length:%d\r\n", content_len);
 }
+
 bool http_conn::add_content_type()
 {
     return add_response("Content-Type:%s\r\n", "text/html");
 }
+
 bool http_conn::add_linger()
 {
     return add_response("Connection:%s\r\n", (m_linger == true) ? "keep-alive" : "close");
 }
+
 bool http_conn::add_blank_line()
 {
     return add_response("%s", "\r\n");
 }
+
 bool http_conn::add_content(const char *content)
 {
     return add_response("%s", content);
 }
+
+http_conn::HTTP_CODE http_conn::process_read()
+{
+    LINE_STATUS line_status = LINE_OK;
+    HTTP_CODE ret = NO_REQUEST;
+    char *text = 0;
+
+    while ((m_check_state == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
+    {
+        text = get_line(); //获取读缓冲区位置
+        m_start_line = m_checked_idx;
+        LOG_INFO("%s", text);
+        switch (m_check_state)
+        {
+        case CHECK_STATE_REQUESTLINE:
+        {
+            ret = parse_request_line(text);
+            if (ret == BAD_REQUEST)
+                return BAD_REQUEST;
+            break;
+        }
+        case CHECK_STATE_HEADER:
+        {
+            ret = parse_headers(text);
+            if (ret == BAD_REQUEST)
+                return BAD_REQUEST;
+            else if (ret == GET_REQUEST)
+            {
+                return do_request();
+            }
+            break;
+        }
+        case CHECK_STATE_CONTENT:
+        {
+            ret = parse_content(text);
+            if (ret == GET_REQUEST)
+                return do_request();
+            line_status = LINE_OPEN;
+            break;
+        }
+        default:
+            return INTERNAL_ERROR;
+        }
+    }
+    return NO_REQUEST;
+}
+
 bool http_conn::process_write(HTTP_CODE ret)
 {
     switch (ret)
@@ -643,18 +659,22 @@ bool http_conn::process_write(HTTP_CODE ret)
     bytes_to_send = m_write_idx;
     return true;
 }
+
 void http_conn::process()
 {
     HTTP_CODE read_ret = process_read();
+    // 表示请求并不完整，还需要接着监听
     if (read_ret == NO_REQUEST)
     {
         modfd(m_epollfd, m_sockfd, EPOLLIN);
         return;
     }
+    // 完整收到请求报文，写响应报文
     bool write_ret = process_write(read_ret);
     if (!write_ret)
     {
         close_conn();
     }
+    // 注册可写监听套接字：注册的同时可也会触发
     modfd(m_epollfd, m_sockfd, EPOLLOUT);
 }
