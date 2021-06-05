@@ -71,16 +71,16 @@ void Log::write_log(int level, const char *format, ...)
     switch (level)
     {
     case 0:
-        strcpy(s, "[debug]:");
+        strcpy(s, "[DEBUG]:");
         break;
     case 1:
-        strcpy(s, "[info]:");
+        strcpy(s, "[INFO]:");
         break;
     case 2:
-        strcpy(s, "[warn]:");
+        strcpy(s, "[WARN]:");
         break;
     case 3:
-        strcpy(s, "[erro]:");
+        strcpy(s, "[ERROR]:");
         break;
     default:
         strcpy(s, "[info]:");
