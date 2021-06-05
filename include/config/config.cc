@@ -6,10 +6,10 @@ Config::Config()
     port = 12000;
 
     //数据库连接池数量,默认8
-    sql_num = 8;
+    sql_num = 6;
 
     //线程池内的线程数量,默认8
-    thread_num = 8;
+    thread_num = 6;
 }
 
 void Config::parse_arg(int argc, char *argv[])
