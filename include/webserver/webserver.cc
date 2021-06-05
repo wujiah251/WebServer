@@ -41,8 +41,8 @@ void WebServer::init(int port, int sql_num, int thread_num,
 
 void WebServer::log_write()
 {
-    //初始化日志
-    Log::get_instance()->init("./Log1/ServerLog", 2000, 800000, 800);
+    // 初始化日志
+    LOG_INIT("Log2","ServerLog",6);
 }
 
 void WebServer::sql_pool()
