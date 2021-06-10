@@ -1,6 +1,6 @@
 CXX ?=g++
 MAIN = main.cc
-TIMER = ./include/timer/timer.cc
+TIMER = ./include/timer/timerQueue.cc ./include/timer/utils.cc
 HTTP = ./include/http/http_connect.cc
 SQL = ./include/mysql/sql_connection_pool.cc
 LOG = ./include/log/log.cc ./include/log/buffer.cc ./include/log/utc_timer.cc

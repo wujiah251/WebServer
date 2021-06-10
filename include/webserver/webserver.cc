@@ -124,7 +124,7 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address)
     users_timer[connfd].sockfd = connfd;
     util_timer *timer = new util_timer;
     timer->user_data = &users_timer[connfd];
-    timer->cb_func = cb_func;
+    timer->callback = callback;
     time_t cur = time(NULL);
     timer->expire = cur + 3 * TIMESLOT;
     users_timer[connfd].timer = timer;
@@ -144,7 +144,7 @@ void WebServer::adjust_timer(util_timer *timer)
 
 void WebServer::deal_timer(util_timer *timer, int sockfd)
 {
-    timer->cb_func(&users_timer[sockfd]);
+    timer->callback(&users_timer[sockfd]);
     if (timer)
     {
         utils.m_timer_lst.del_timer(timer);
