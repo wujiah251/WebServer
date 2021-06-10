@@ -42,7 +42,7 @@ void WebServer::init(int port, int sql_num, int thread_num,
 void WebServer::log_write()
 {
     // 初始化日志
-    LOG_INIT("Log2","ServerLog",6);
+    LOG_INIT("Log2", "ServerLog", 6);
 }
 
 void WebServer::sql_pool()
