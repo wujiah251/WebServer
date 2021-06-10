@@ -2,33 +2,24 @@
 #define TIMER_QUEUE_H
 
 #include "timer.h"
+#include <set>
+using std::pair;
+using std::set;
 
-// 已经排序的定时器链表
-class sort_timer_lst
+class timerQueue
 {
 public:
-    sort_timer_lst();
-    ~sort_timer_lst();
-    // 添加一个定时器
-    void add_timer(util_timer *timer);
-    // 更新一个定时器在链表中的位置
-    void adjust_timer(util_timer *timer);
-    // 删除一个定时器
-    void del_timer(util_timer *timer);
-    // 滴答一下，删除过期的定时器，并调用回调函数
+    typedef pair<time_t, util_timer *> Entry;
+    typedef set<Entry> TimerList;
+    timerQueue() {}
+    ~timerQueue() {}
+    void addTimer(util_timer *timer);
+    void adjustTimer(util_timer *timer, time_t new_expire);
+    void deleteTimer(util_timer *timer);
     void tick();
 
 private:
-    void add_timer(util_timer *timer, util_timer *lst_head);
-
-    util_timer *head;
-    util_timer *tail;
+    TimerList timerList;
 };
-
-
-
-
-
-
 
 #endif

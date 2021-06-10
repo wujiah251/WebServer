@@ -1,147 +1,57 @@
 #include "timerQueue.h"
 
-
-
-sort_timer_lst::sort_timer_lst()
-{
-    head = NULL;
-    tail = NULL;
-}
-sort_timer_lst::~sort_timer_lst()
-{
-    util_timer *tmp = head;
-    while (tmp)
-    {
-        head = tmp->next;
-        delete tmp;
-        tmp = head;
-    }
-}
-
-void sort_timer_lst::add_timer(util_timer *timer)
+// 插入一个新的定时器
+void timerQueue::addTimer(util_timer *timer)
 {
     if (!timer)
     {
         return;
     }
-    if (!head)
-    {
-        head = tail = timer;
-        return;
-    }
-    if (timer->expire < head->expire)
-    {
-        timer->next = head;
-        head->prev = timer;
-        head = timer;
-        return;
-    }
-    add_timer(timer, head);
+    Entry entry{timer->expire, timer};
+    timerList.insert(entry);
 }
-void sort_timer_lst::adjust_timer(util_timer *timer)
-{
-    if (!timer)
-    {
-        return;
-    }
-    util_timer *tmp = timer->next;
-    if (!tmp || (timer->expire < tmp->expire))
-    {
-        return;
-    }
-    if (timer == head)
-    {
-        head = head->next;
-        head->prev = NULL;
-        timer->next = NULL;
-        add_timer(timer, head);
-    }
-    else
-    {
-        timer->prev->next = timer->next;
-        timer->next->prev = timer->prev;
-        add_timer(timer, timer->next);
-    }
-}
-void sort_timer_lst::del_timer(util_timer *timer)
-{
-    if (!timer)
-    {
-        return;
-    }
-    if ((timer == head) && (timer == tail))
-    {
-        delete timer;
-        head = NULL;
-        tail = NULL;
-        return;
-    }
-    if (timer == head)
-    {
-        head = head->next;
-        head->prev = NULL;
-        delete timer;
-        return;
-    }
-    if (timer == tail)
-    {
-        tail = tail->prev;
-        tail->next = NULL;
-        delete timer;
-        return;
-    }
-    timer->prev->next = timer->next;
-    timer->next->prev = timer->prev;
-    delete timer;
-}
-void sort_timer_lst::tick()
-{
-    if (!head)
-    {
-        return;
-    }
 
+// 更新定时器的位置
+void timerQueue::adjustTimer(util_timer *timer, time_t new_expire)
+{
+    if (!timer)
+    {
+        return;
+    }
+    // 先删除旧的
+    timerList.erase({timer->expire, timer});
+    // 插入新的
+    Entry newEntry{new_expire, timer};
+    timerList.insert(newEntry);
+}
+
+// 删除定时器
+void timerQueue::deleteTimer(util_timer *timer)
+{
+    if (timer->callback)
+    {
+        timer->callback(timer->user_data);
+    }
+    timerList.erase({timer->expire, timer});
+}
+
+// 滴答一下
+void timerQueue::tick()
+{
     time_t cur = time(NULL);
-    util_timer *tmp = head;
-    while (tmp)
+    // 将所有小于当前时间的定时器删除
+    Entry bound{cur, nullptr};
+    auto it = timerList.begin();
+    while (it != timerList.end())
     {
-        if (cur < tmp->expire)
+        if (*it < bound)
+        {
+            it->second->callback(it->second->user_data);
+            timerList.erase(it++);
+        }
+        else
         {
             break;
         }
-        tmp->callback(tmp->user_data);
-        head = tmp->next;
-        if (head)
-        {
-            head->prev = NULL;
-        }
-        delete tmp;
-        tmp = head;
-    }
-}
-
-void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
-{
-    util_timer *prev = lst_head;
-    util_timer *tmp = prev->next;
-    while (tmp)
-    {
-        if (timer->expire < tmp->expire)
-        {
-            prev->next = timer;
-            timer->next = tmp;
-            tmp->prev = timer;
-            timer->prev = prev;
-            break;
-        }
-        prev = tmp;
-        tmp = tmp->next;
-    }
-    if (!tmp)
-    {
-        prev->next = timer;
-        timer->prev = prev;
-        timer->next = NULL;
-        tail = timer;
     }
 }

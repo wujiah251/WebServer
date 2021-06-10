@@ -8,19 +8,18 @@
 #define MEM_USE_LIMIT (3u * 1024 * 1024 * 1024) //3GB
 
 #define LOG_USE_LIMIT (1u * 1024 * 1024 * 1024) //1GB
+
 // 一条日志长度限制
-#define LOG_LEN_LIMIT (4 * 1024) //4K
+#define LOG_LEN_LIMIT (4 * 1024) //4KB
 // RELOG临界点
 #define RELOG_THRESOLD 5
 // 消费者等待时间
 #define BUFF_WAIT_TIME 1
 
-
-
 pthread_mutex_t Log::_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t Log::_cond = PTHREAD_COND_INITIALIZER;
 
-size_t Log::buffer_block_size = 30 * 1024 * 1024; //30MB
+size_t Log::buffer_block_size = 1024 * 1024; //1MB
 
 Log::Log()
     : buffer_cnt(3), producer_ptr(NULL), consumer_ptr(NULL), fp(NULL),
@@ -130,6 +129,7 @@ void Log::persist()
             continue;
         //write
         consumer_ptr->persist(fp);
+
         // 强制刷新
         fflush(fp);
 

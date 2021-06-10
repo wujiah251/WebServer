@@ -34,6 +34,6 @@ void Buffer::persist(FILE *fp)
     uint32_t write_len = fwrite(data, 1, used_len, fp);
     if (write_len != used_len)
     {
-        fprintf(stderr, "write log to disk error, wt_len %u\n", write_len);
+        fprintf(stderr, "write log to disk error, wt_len:%u,used_len:%ld\n", write_len, used_len);
     }
 }

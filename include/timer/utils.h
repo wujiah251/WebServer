@@ -20,12 +20,12 @@ public:
     //定时处理任务，重新定时以不断触发SIGALRM信号
     void timer_handler();
     void show_error(int connfd, const char *info);
+
 public:
     static int *u_pipefd;
-    sort_timer_lst m_timer_lst;
+    timerQueue m_timer_lst;
     static int u_epollfd;
     int m_TIMESLOT;
 };
-
 
 #endif

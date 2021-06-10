@@ -42,7 +42,7 @@ void WebServer::init(int port, int sql_num, int thread_num,
 void WebServer::log_write()
 {
     // 初始化日志
-    LOG_INIT("Log2","ServerLog",6);
+    LOG_INIT("Log2", "ServerLog", 6);
 }
 
 void WebServer::sql_pool()
@@ -120,34 +120,33 @@ void WebServer::timer(int connfd, struct sockaddr_in client_address)
 
     //初始化client_data数据
     //创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中
+    time_t expire = time(NULL) + 3 * TIMESLOT;
     users_timer[connfd].address = client_address;
     users_timer[connfd].sockfd = connfd;
-    util_timer *timer = new util_timer;
-    timer->user_data = &users_timer[connfd];
-    timer->callback = callback;
-    time_t cur = time(NULL);
-    timer->expire = cur + 3 * TIMESLOT;
+    util_timer *timer = new util_timer(expire, &users_timer[connfd], default_callback);
     users_timer[connfd].timer = timer;
-    utils.m_timer_lst.add_timer(timer);
+    // 将定时器加入到定时器队列中
+    // TODO:
+    utils.m_timer_lst.addTimer(timer);
 }
 
 //若有数据传输，则将定时器往后延迟3个单位
 //并对新的定时器在链表上的位置进行调整
+//
 void WebServer::adjust_timer(util_timer *timer)
 {
-    time_t cur = time(NULL);
-    timer->expire = cur + 3 * TIMESLOT;
-    utils.m_timer_lst.adjust_timer(timer);
+    time_t new_expire = time(NULL) + 3 * TIMESLOT;
+    utils.m_timer_lst.adjustTimer(timer, new_expire);
 
     LOG_INFO("%s", "adjust timer once");
 }
 
 void WebServer::deal_timer(util_timer *timer, int sockfd)
 {
-    timer->callback(&users_timer[sockfd]);
+    assert(timer->user_data->sockfd == sockfd);
     if (timer)
     {
-        utils.m_timer_lst.del_timer(timer);
+        utils.m_timer_lst.deleteTimer(timer);
     }
 
     LOG_INFO("close fd %d", users_timer[sockfd].sockfd);

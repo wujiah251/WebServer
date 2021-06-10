@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "../http/http_connect.h"
 
-
 void Utils::init(int timeslot)
 {
     m_TIMESLOT = timeslot;
@@ -76,7 +75,7 @@ int *Utils::u_pipefd = 0;
 int Utils::u_epollfd = 0;
 
 class Utils;
-void callback(client_data *user_data)
+void default_callback(client_data *user_data)
 {
     // 操作epoll的内核事件表
     // 下属操作为删除user_date对应套接字在epoll内核事件表中的注册事件

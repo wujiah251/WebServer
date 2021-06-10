@@ -26,7 +26,6 @@
 
 class util_timer;
 
-
 // 客户端相关数据
 struct client_data
 {
@@ -39,20 +38,28 @@ struct client_data
 class util_timer
 {
 public:
-    util_timer() : prev(NULL), next(NULL) {}
+    typedef void (*TimerCallback)(client_data *);
+
+    util_timer(time_t expire, client_data *data, TimerCallback cb)
+        : expire(expire), user_data(data), callback(cb)
+    {
+    }
+    void set_expire(time_t ex)
+    {
+        expire = ex;
+    }
+    void set_client_data(client_data *data)
+    {
+        user_data = data;
+    }
 
 public:
     time_t expire;
-
-    void (*callback)(client_data *);
+    TimerCallback callback;
     client_data *user_data;
-    util_timer *prev;
-    util_timer *next;
 };
 
-
-
 // 回调函数
-void callback(client_data *user_data);
+void default_callback(client_data *user_data);
 
 #endif
