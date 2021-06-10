@@ -57,20 +57,21 @@ private:
     locker m_mutex;                   //互斥锁
 };
 
-#define LOG_DEBUG(format, ...)                                                  \
-    Log::get_instance()->write_log(0, "%s:%d(%s): " format "\n",                \
-                            __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);   \
+#define LOG_DEBUG(format, ...)                                                       \
+    Log::get_instance()->write_log(0, "%s:%d(%s): " format "\n",                     \
+                                   __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::get_instance()->flush();
-#define LOG_INFO(format, ...)                                                   \
-    Log::get_instance()->write_log(1, "%s:%d(%s): " format "\n",                \
-                            __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);   \
-    Log::get_instance()->flush();                                       
-#define LOG_WARN(format, ...)                                                   \
-    Log::get_instance()->write_log(3, "%s:%d(%s): " format "\n",                \
-                            __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__);   \
-    Log::get_instance()->flush();                                       
-#define LOG_ERROR(format, ...)                                                  \
-    Log::get_instance()->write_log(4, format, ##__VA_ARGS__);                   \
+#define LOG_INFO(format, ...)                                                        \
+    Log::get_instance()->write_log(1, "%s:%d(%s): " format "\n",                     \
+                                   __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
+    Log::get_instance()->flush();
+#define LOG_WARN(format, ...)                                                        \
+    Log::get_instance()->write_log(2, "%s:%d(%s): " format "\n",                     \
+                                   __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
+    Log::get_instance()->flush();
+#define LOG_ERROR(format, ...)                                                       \
+    Log::get_instance()->write_log(3, "%s:%d(%s): " format "\n",                     \
+                                   __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
     Log::get_instance()->flush();
 
 #endif
