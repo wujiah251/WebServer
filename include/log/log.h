@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <time.h>
-#include <unistd.h>      //access, getpid
+#include <unistd.h> //access, getpid
 #include <sys/time.h>
 #include <sys/types.h> //getpid, gettid
 
@@ -194,76 +194,76 @@ void *persist_worker(void *args);
     } while (0)
 
 // TRACE日志等级
-#define LOG_TRACE(fmt, args...)                                                                 \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= TRACE)                                           \
-        {                                                                                       \
-            Log::getInstance()->try_append("[TRACE]", "%s:%d(%s): " fmt "\n",               \
-                                            __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+#define LOG_TRACE(fmt, args...)                                                       \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= TRACE)                                 \
+        {                                                                             \
+            Log::getInstance()->try_append("[TRACE]", "%s:%d(%s): " fmt "\n",         \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
+        }                                                                             \
     } while (0)
 
 // DEBUG日志等级
-#define LOG_DEBUG(fmt, args...)                                                                 \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= DEBUG)                                           \
-        {                                                                                       \
-            Log::getInstance()->try_append("[DEBUG]", "%s:%d(%s): " fmt "\n",               \
+#define LOG_DEBUG(fmt, args...)                                                       \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= DEBUG)                                 \
+        {                                                                             \
+            Log::getInstance()->try_append("[DEBUG]", "%s:%d(%s): " fmt "\n",         \
                                            __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+        }                                                                             \
     } while (0)
 
 // INFO日志等级
-#define LOG_INFO(fmt, args...)                                                                  \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= INFO)                                            \
-        {                                                                                       \
-            Log::getInstance()->try_append("[INFO]", "%s:%d(%s): " fmt "\n",                \
-                                        __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+#define LOG_INFO(fmt, args...)                                                        \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= INFO)                                  \
+        {                                                                             \
+            Log::getInstance()->try_append("[INFO]", "%s:%d(%s): " fmt "\n",          \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
+        }                                                                             \
     } while (0)
 
 // NORMAL日志等级
-#define LOG_NORMAL(fmt, args...)                                                                \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= INFO)                                            \
-        {                                                                                       \
-            Log::getInstance()->try_append("[NORMAL]", "%s:%d(%s): " fmt "\n",                \
+#define LOG_NORMAL(fmt, args...)                                                      \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= INFO)                                  \
+        {                                                                             \
+            Log::getInstance()->try_append("[NORMAL]", "%s:%d(%s): " fmt "\n",        \
                                            __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+        }                                                                             \
     } while (0)
 
 // WARN日志等级
-#define LOG_WARN(fmt, args...)                                                                  \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= WARN)                                            \
-        {                                                                                       \
-            Log::getInstance()->try_append("[WARN]", "%s:%d(%s): " fmt "\n",                \
-                                        __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+#define LOG_WARN(fmt, args...)                                                        \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= WARN)                                  \
+        {                                                                             \
+            Log::getInstance()->try_append("[WARN]", "%s:%d(%s): " fmt "\n",          \
+                                           __FILE__, __LINE__, __FUNCTION__, ##args); \
+        }                                                                             \
     } while (0)
 
 // ERROR日志等级
-#define LOG_ERROR(fmt, args...)                                                                 \
-    do                                                                                          \
-    {                                                                                           \
-        if (Log::getInstance()->get_level() >= ERROR)                                           \
-        {                                                                                       \
-            Log::getInstance()->try_append("[ERROR]", "%s:%d(%s): " fmt "\n",               \
+#define LOG_ERROR(fmt, args...)                                                       \
+    do                                                                                \
+    {                                                                                 \
+        if (Log::getInstance()->get_level() >= ERROR)                                 \
+        {                                                                             \
+            Log::getInstance()->try_append("[ERROR]", "%s:%d(%s): " fmt "\n",         \
                                            __FILE__, __LINE__, __FUNCTION__, ##args); \
-        }                                                                                       \
+        }                                                                             \
     } while (0)
 
 // FATAL日志等级
-#define LOG_FATAL(fmt, args...)                                                             \
-    do                                                                                      \
-    {                                                                                       \
-        Log::getInstance()->try_append("[FATAL]", "%s:%d(%s): " fmt "\n",               \
+#define LOG_FATAL(fmt, args...)                                                   \
+    do                                                                            \
+    {                                                                             \
+        Log::getInstance()->try_append("[FATAL]", "%s:%d(%s): " fmt "\n",         \
                                        __FILE__, __LINE__, __FUNCTION__, ##args); \
     } while (0)
 

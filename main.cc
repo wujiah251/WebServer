@@ -14,12 +14,10 @@ int main(int argc, char *argv[])
 
     //初始化
     server.init(config.port, config.sql_num, config.thread_num, user, password, database_name);
-
     //日志
     server.log_write();
     //数据库
     server.sql_pool();
-
     //线程池
     server.thread_pool();
 

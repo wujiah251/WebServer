@@ -15,12 +15,10 @@
 // 消费者等待时间
 #define BUFF_WAIT_TIME 1
 
-
-
 pthread_mutex_t Log::_mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t Log::_cond = PTHREAD_COND_INITIALIZER;
 
-size_t Log::buffer_block_size = 30 * 1024 * 1024; //30MB
+size_t Log::buffer_block_size = 1024 * 1024; //30MB
 
 Log::Log()
     : buffer_cnt(3), producer_ptr(NULL), consumer_ptr(NULL), fp(NULL),
