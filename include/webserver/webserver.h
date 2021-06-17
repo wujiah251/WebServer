@@ -13,7 +13,7 @@
 #include <sys/epoll.h>
 
 #include "../mysql/sql_connection_pool.h"
-#include "../threadpool/threadpool.h"
+#include "../threadpool/newthreadpool.h"
 #include "../http/http_connect.h"
 #include "../lock/locker.h"
 #include "../log/log.h"

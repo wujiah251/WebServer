@@ -14,17 +14,18 @@ public:
     eventLoop(connection_pool *connPool, int max_requests);
     ~eventLoop();
     bool append(T *request); //添加请求
+    static void *worker(void *arg);
 
 public:
     locker queueLocker; //互斥锁，用于保护队列
 
 private:
-    int maxRequests;           // 最大请求数
-    vector<T *> requestList;   // 请求队列
-    connection_pool *connPool; // 数据库连接池
+    int maxRequests;         // 最大请求数
+    vector<T *> requestList; // 请求队列
+    MYSQL *mysqlConn;        // 数据库连接
+    connection_pool *connPool;
 
 private:
-    static void *worker(void *arg);
     void run();
 };
 
@@ -51,12 +52,13 @@ bool eventLoop<T>::append(T *request)
     }
     requestList.push_back(request);
     queueLocker.unlock();
+    return true;
 }
 
 template <typename T>
 void *eventLoop<T>::worker(void *arg)
 {
-    eventLoop loop = (eventLoop *)arg;
+    eventLoop<T> *loop = (eventLoop<T> *)arg;
     loop->run();
     return nullptr;
 }
@@ -64,17 +66,11 @@ void *eventLoop<T>::worker(void *arg)
 template <typename T>
 void eventLoop<T>::run()
 {
+    // 获取一个数据库连接
+    connectionRAII mysqlconRAII(&mysqlConn, connPool);
     while (true)
     {
         vector<T *> tempList;
-        for (int i = 0; i < 100000; ++i)
-        {
-            // 忙等待
-            if (requestList.size() > 0)
-            {
-                break;
-            }
-        }
         {
             queueLocker.lock();
             //临界区，交换队列，用于减少阻塞
@@ -95,7 +91,7 @@ void eventLoop<T>::run()
                 continue;
             }
             // TODO:
-            connectionRAII mysqlcon(&request->mysql, connPool);
+            request->mysql = mysqlConn;
             request->process();
         }
         tempList.clear();
