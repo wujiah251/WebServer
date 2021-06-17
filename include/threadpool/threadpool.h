@@ -29,7 +29,7 @@ private:
     std::list<T *> m_workqueue;  //请求队列
     locker m_queuelocker;        //保护请求队列的互斥锁
     sem m_queuestat;             //是否有任务需要处理
-    connection_pool *m_connPool; //数据库
+    connection_pool *m_connPool; //数据库连接池
 };
 template <typename T>
 threadpool<T>::threadpool(connection_pool *connPool, int thread_number, int max_requests)
@@ -96,6 +96,7 @@ void threadpool<T>::run()
         T *request = m_workqueue.front();
         m_workqueue.pop_front();
         m_queuelocker.unlock();
+
         if (!request)
             continue;
         connectionRAII mysqlcon(&request->mysql, m_connPool);
